@@ -1,0 +1,32 @@
+{
+  "name": "keepprint",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:e2e": "vitest run tests/e2e-happy.test.ts",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@google/model-viewer": "4.0.0",
+    "@manycore/aholo-sdk-lux3d": "1.10.0",
+    "zod": "3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "22.10.1",
+    "eslint": "9.16.0",
+    "jsdom": "25.0.1",
+    "prettier": "3.4.2",
+    "typescript": "5.7.2",
+    "typescript-eslint": "8.17.0",
+    "vite": "6.0.3",
+    "vitest": "2.1.8"
+  }
+}
