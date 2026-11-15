@@ -15,6 +15,7 @@ export interface DownloadPanelOptions {
   readinessNotes?: string[];
   onDownload?: (format: 'stl' | '3mf' | 'glb', url: string) => void;
   onReset?: () => void;
+  onOpenPrintGuide?: () => void;
 }
 
 export class DownloadPanel {
@@ -108,6 +109,14 @@ export class DownloadPanel {
           `
               : ''
           }
+
+          <button
+            type="button"
+            class="download-btn btn-outline"
+            id="open-guide-btn"
+          >
+            <span class="btn-icon">📖</span> Slicer &amp; 3D Print Guide
+          </button>
         </div>
 
         ${
@@ -146,6 +155,11 @@ export class DownloadPanel {
     const resetBtn = this.container.querySelector<HTMLButtonElement>('#reset-flow-btn');
     resetBtn?.addEventListener('click', () => {
       this.options.onReset?.();
+    });
+
+    const guideBtn = this.container.querySelector<HTMLButtonElement>('#open-guide-btn');
+    guideBtn?.addEventListener('click', () => {
+      this.options.onOpenPrintGuide?.();
     });
   }
 

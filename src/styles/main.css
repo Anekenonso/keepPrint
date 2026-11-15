@@ -35,18 +35,49 @@ body {
 
 header {
   margin-bottom: 32px;
-  text-align: center;
+}
+
+.header-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-inner .brand {
+  text-align: left;
 }
 
 header h1 {
   font-size: 2rem;
   color: var(--primary-color);
-  margin-bottom: 8px;
+  margin-bottom: 4px;
 }
 
 header p {
   color: var(--muted-text);
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+}
+
+.btn-guide-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  border-radius: var(--radius);
+  font-size: 0.92rem;
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.btn-guide-header:hover {
+  background-color: #fbf1ea;
 }
 
 .card {
@@ -542,6 +573,17 @@ model-viewer {
   border-color: var(--text-color);
 }
 
+.btn-outline {
+  background-color: #ffffff;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  font-size: 0.95rem;
+}
+
+.btn-outline:hover {
+  background-color: #fcf1ea;
+}
+
 .btn-disabled {
   background-color: #ece8e3;
   color: #9c9186;
@@ -655,6 +697,167 @@ model-viewer {
   background-color: rgba(0, 0, 0, 0.05);
 }
 
+/* Print Guide Modal (T-15) */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(31, 26, 23, 0.65);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.modal-dialog {
+  max-width: 680px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: var(--surface-color);
+  border-radius: var(--radius);
+  padding: 28px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.modal-title-group h2 {
+  font-size: 1.45rem;
+  color: var(--text-color);
+  margin-top: 4px;
+}
+
+.modal-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--primary-color);
+  background-color: #fbf0e8;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.modal-subtitle {
+  color: var(--muted-text);
+  font-size: 0.95rem;
+  margin-top: 4px;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  color: var(--muted-text);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.btn-close-modal:hover {
+  color: var(--text-color);
+  background: #f4ede6;
+}
+
+.modal-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.guide-card {
+  background-color: #faf7f2;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.guide-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.guide-card-header h3 {
+  font-size: 1rem;
+  color: var(--text-color);
+}
+
+.guide-card-icon {
+  font-size: 1.25rem;
+}
+
+.guide-card p {
+  font-size: 0.88rem;
+  color: var(--muted-text);
+}
+
+.guide-card ul {
+  margin-left: 18px;
+  font-size: 0.85rem;
+  color: var(--text-color);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.guide-preservation-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  background-color: #f0f7f3;
+  border: 1px solid #d2eadb;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: var(--text-color);
+}
+
+.preservation-icon {
+  font-size: 1.4rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-color);
+}
+
 /* Accessibility & Focus States */
 button:focus-visible,
 a:focus-visible,
@@ -675,8 +878,26 @@ textarea:focus-visible,
     padding: 18px 14px;
   }
 
+  .header-inner {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .header-inner .brand {
+    text-align: center;
+  }
+
   header h1 {
     font-size: 1.7rem;
+  }
+
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-dialog {
+    padding: 20px 16px;
   }
 
   model-viewer {

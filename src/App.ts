@@ -2,6 +2,7 @@ import { UploadForm } from './components/UploadForm';
 import { ProgressComponent, type ProgressStage } from './components/Progress';
 import { ViewerComponent } from './components/Viewer';
 import { DownloadPanel } from './components/DownloadPanel';
+import { PrintGuideModal } from './components/PrintGuideModal';
 import { generate3D, type GenerationResult } from './lib/lux3d';
 import { saveLastJob, loadLastJob, clearLastJob, hasLastJob } from './lib/storage';
 import type { GenerationInput, Job } from './lib/types';
@@ -51,13 +52,25 @@ export class App {
   public render(): void {
     this.container.innerHTML = `
       <header>
-        <h1>Keepprint</h1>
-        <p>Keep the original safe. Print a copy you can hold.</p>
+        <div class="header-inner">
+          <div class="brand">
+            <h1>Keepprint</h1>
+            <p>Keep the original safe. Print a copy you can hold.</p>
+          </div>
+          <button type="button" class="btn-guide-header" id="header-guide-btn" title="View 3D Printing & Slicing Guide">
+            <span class="guide-icon">📖</span> Print Guide
+          </button>
+        </div>
       </header>
       <main class="card" id="main-content" role="main">
         <div id="step-container"></div>
       </main>
     `;
+
+    const headerGuideBtn = this.container.querySelector<HTMLButtonElement>('#header-guide-btn');
+    headerGuideBtn?.addEventListener('click', () => {
+      this.openPrintGuide();
+    });
 
     const stepContainer = this.container.querySelector<HTMLElement>('#step-container');
     if (!stepContainer) return;
@@ -181,6 +194,9 @@ export class App {
         onReset: () => {
           this.reset();
         },
+        onOpenPrintGuide: () => {
+          this.openPrintGuide();
+        },
       });
       panel.render();
     }
@@ -280,6 +296,11 @@ export class App {
     this.currentJob = null;
     this.lastInput = null;
     this.render();
+  }
+
+  public openPrintGuide(): void {
+    const modal = new PrintGuideModal(document.body);
+    modal.open();
   }
 
   public getState(): AppState {
