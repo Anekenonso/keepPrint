@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <style>
+      .bg { fill: #F8F4EF; }
+      .card { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 1.5; rx: 12px; }
+      .header-title { font-family: system-ui, sans-serif; font-size: 32px; font-weight: bold; fill: #C45C26; text-anchor: middle; }
+      .header-sub { font-family: system-ui, sans-serif; font-size: 18px; fill: #6B5E54; text-anchor: middle; }
+      .progress-title { font-family: system-ui, sans-serif; font-size: 24px; font-weight: 700; fill: #1F1A17; text-anchor: middle; }
+      .progress-msg { font-family: system-ui, sans-serif; font-size: 16px; fill: #6B5E54; text-anchor: middle; }
+      .bar-bg { fill: #E5DED6; rx: 4px; }
+      .bar-fill { fill: #C45C26; rx: 4px; }
+      .step-active { fill: #FBF5EF; rx: 8px; }
+      .step-text-active { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 600; fill: #C45C26; }
+      .step-text-completed { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 500; fill: #2F6F4E; }
+      .step-text-pending { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 500; fill: #A39589; }
+      .cancel-btn { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 1; rx: 10px; }
+      .cancel-text { font-family: system-ui, sans-serif; font-size: 15px; fill: #6B5E54; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" class="bg" />
+
+  <!-- Header -->
+  <text x="600" y="80" class="header-title">Keepprint</text>
+  <text x="600" y="115" class="header-sub">Keep the original safe. Print a copy you can hold.</text>
+
+  <!-- Card Container -->
+  <rect x="250" y="150" width="700" height="540" class="card" />
+
+  <!-- Progress Header -->
+  <text x="600" y="220" class="progress-title">Crafting Your 3D Heirloom</text>
+  <text x="600" y="255" class="progress-msg">Running retopology for slicer print-readiness...</text>
+
+  <!-- Progress Bar -->
+  <rect x="300" y="290" width="600" height="8" class="bar-bg" />
+  <rect x="300" y="290" width="450" height="8" class="bar-fill" />
+
+  <!-- Steps List -->
+  <!-- Step 1: Upload (Completed) -->
+  <g transform="translate(300, 330)">
+    <text x="20" y="32" font-size="18" fill="#2F6F4E">✓</text>
+    <text x="50" y="32" class="step-text-completed">Upload heirloom data</text>
+  </g>
+
+  <!-- Step 2: Mesh Generation (Completed) -->
+  <g transform="translate(300, 385)">
+    <text x="20" y="32" font-size="18" fill="#2F6F4E">✓</text>
+    <text x="50" y="32" class="step-text-completed">Generate 3D mesh (Lux3D G1)</text>
+  </g>
+
+  <!-- Step 3: Retopology (Active) -->
+  <g transform="translate(300, 440)">
+    <rect x="0" y="5" width="600" height="42" class="step-active" />
+    <circle cx="27" cy="26" r="6" fill="#C45C26" />
+    <text x="50" y="32" class="step-text-active">Optimize topology &amp; printability (80,000 face budget)</text>
+  </g>
+
+  <!-- Step 4: Export (Pending) -->
+  <g transform="translate(300, 495)">
+    <circle cx="27" cy="26" r="6" stroke="#A39589" stroke-width="1.5" fill="none" />
+    <text x="50" y="32" class="step-text-pending">Export STL &amp; 3MF models</text>
+  </g>
+
+  <!-- Cancel Button -->
+  <rect x="490" y="580" width="220" height="42" class="cancel-btn" />
+  <text x="600" y="607" class="cancel-text">Cancel Generation</text>
+</svg>

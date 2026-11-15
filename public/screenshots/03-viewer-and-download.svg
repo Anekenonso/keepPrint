@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 950" width="1200" height="950">
+  <defs>
+    <style>
+      .bg { fill: #F8F4EF; }
+      .card { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 1.5; rx: 12px; }
+      .header-title { font-family: system-ui, sans-serif; font-size: 32px; font-weight: bold; fill: #C45C26; text-anchor: middle; }
+      .header-sub { font-family: system-ui, sans-serif; font-size: 18px; fill: #6B5E54; text-anchor: middle; }
+      .result-title { font-family: system-ui, sans-serif; font-size: 24px; font-weight: 700; fill: #1F1A17; text-anchor: middle; }
+      .result-sub { font-family: system-ui, sans-serif; font-size: 16px; fill: #6B5E54; text-anchor: middle; }
+      .viewer-box { fill: #F4EDE3; stroke: #E5DED6; stroke-width: 1; rx: 12px; }
+      .viewer-hint { font-family: system-ui, sans-serif; font-size: 13px; fill: #6B5E54; text-anchor: middle; }
+      .readiness-card { fill: #FBF9F6; stroke: #E5DED6; stroke-width: 1; rx: 12px; }
+      .badge-good { fill: #E9F5EE; stroke: #C2E5D0; stroke-width: 1; rx: 14px; }
+      .badge-text { font-family: system-ui, sans-serif; font-size: 14px; font-weight: 600; fill: #2F6F4E; }
+      .note-text { font-family: system-ui, sans-serif; font-size: 14px; fill: #6B5E54; }
+      .btn-stl { fill: #C45C26; rx: 12px; }
+      .btn-3mf { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 2; rx: 12px; }
+      .btn-text-white { font-family: system-ui, sans-serif; font-size: 17px; font-weight: 600; fill: #FFFFFF; text-anchor: middle; }
+      .btn-text-dark { font-family: system-ui, sans-serif; font-size: 17px; font-weight: 600; fill: #1F1A17; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="950" class="bg" />
+
+  <!-- Header -->
+  <text x="600" y="60" class="header-title">Keepprint</text>
+  <text x="600" y="90" class="header-sub">Keep the original safe. Print a copy you can hold.</text>
+
+  <!-- Card Container -->
+  <rect x="250" y="120" width="700" height="780" class="card" />
+
+  <!-- Result Header -->
+  <text x="600" y="165" class="result-title">Your 3D Heirloom Model</text>
+  <text x="600" y="195" class="result-sub">Inspect the full-color model in 3D and download clean, print-ready files for your slicer.</text>
+
+  <!-- 3D Model Viewer Canvas Box -->
+  <rect x="290" y="220" width="620" height="300" class="viewer-box" />
+  <circle cx="600" cy="350" r="70" fill="#C45C26" opacity="0.15" />
+  <text x="600" y="370" font-size="70" text-anchor="middle">🗿</text>
+  <text x="600" y="500" class="viewer-hint">Rotate: Drag / Swipe • Zoom: Pinch / Scroll</text>
+
+  <!-- Print Readiness Section -->
+  <rect x="290" y="540" width="620" height="120" class="readiness-card" />
+  <text x="315" y="575" font-family="system-ui, sans-serif" font-size="16px" font-weight="700" fill="#1F1A17">Print Readiness</text>
+  <rect x="780" y="555" width="105" height="28" class="badge-good" />
+  <text x="795" y="574" class="badge-text">● Good</text>
+
+  <text x="320" y="605" class="note-text">✓ Manifold geometry verified via retopology</text>
+  <text x="320" y="628" class="note-text">✓ Slicer-ready for FDM and Resin 3D printers</text>
+  <text x="320" y="650" class="note-text">✓ Watertight outer mesh boundary</text>
+
+  <!-- Download Buttons -->
+  <!-- STL -->
+  <rect x="290" y="680" width="620" height="50" class="btn-stl" />
+  <text x="600" y="712" class="btn-text-white">📦 Download STL (Print-Ready)</text>
+
+  <!-- 3MF -->
+  <rect x="290" y="745" width="620" height="50" class="btn-3mf" />
+  <text x="600" y="777" class="btn-text-dark">📐 Download 3MF (Color &amp; Slices)</text>
+
+  <!-- Reset Link -->
+  <text x="600" y="845" font-family="system-ui, sans-serif" font-size="15px" fill="#C45C26" text-decoration="underline" text-anchor="middle" cursor="pointer">Create Another Heirloom</text>
+</svg>

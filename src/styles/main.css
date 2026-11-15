@@ -591,3 +591,48 @@ model-viewer {
   color: var(--muted-text);
   font-size: 1rem;
 }
+
+/* Accessibility & Focus States */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+.drop-zone:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  #app {
+    padding: 16px 12px;
+  }
+
+  .card {
+    padding: 18px 14px;
+  }
+
+  header h1 {
+    font-size: 1.7rem;
+  }
+
+  model-viewer {
+    height: 320px;
+    min-height: 280px;
+  }
+
+  .download-actions {
+    position: sticky;
+    bottom: 12px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    padding: 12px;
+    border-radius: var(--radius);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    border: 1px solid var(--border-color);
+  }
+
+  .download-btn {
+    width: 100%;
+  }
+}

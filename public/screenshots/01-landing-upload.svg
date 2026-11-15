@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <style>
+      .bg { fill: #F8F4EF; }
+      .card { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 1.5; rx: 12px; }
+      .header-title { font-family: system-ui, sans-serif; font-size: 32px; font-weight: bold; fill: #C45C26; text-anchor: middle; }
+      .header-sub { font-family: system-ui, sans-serif; font-size: 18px; fill: #6B5E54; text-anchor: middle; }
+      .tab-active { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 600; fill: #C45C26; }
+      .tab-inactive { font-family: system-ui, sans-serif; font-size: 16px; font-weight: 500; fill: #6B5E54; }
+      .dropzone { fill: #FDFCFB; stroke: #C45C26; stroke-width: 2; stroke-dasharray: 6,6; rx: 12px; }
+      .text-title { font-family: system-ui, sans-serif; font-size: 18px; font-weight: 600; fill: #1F1A17; text-anchor: middle; }
+      .text-hint { font-family: system-ui, sans-serif; font-size: 14px; fill: #6B5E54; text-anchor: middle; }
+      .button { fill: #C45C26; rx: 12px; }
+      .button-text { font-family: system-ui, sans-serif; font-size: 18px; font-weight: 600; fill: #FFFFFF; text-anchor: middle; }
+      .preview-box { fill: #FFFFFF; stroke: #E5DED6; stroke-width: 1; rx: 8px; }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="800" class="bg" />
+
+  <!-- Header -->
+  <text x="600" y="80" class="header-title">Keepprint</text>
+  <text x="600" y="115" class="header-sub">Keep the original safe. Print a copy you can hold.</text>
+
+  <!-- Card Container -->
+  <rect x="250" y="150" width="700" height="580" class="card" />
+
+  <!-- Tabs -->
+  <text x="310" y="200" class="tab-active">Upload Photo(s)</text>
+  <rect x="290" y="215" width="130" height="3" fill="#C45C26" />
+  <text x="470" y="200" class="tab-inactive">Describe Heirloom</text>
+  <line x1="280" y1="218" x2="920" y2="218" stroke="#E5DED6" stroke-width="1.5" />
+
+  <!-- Dropzone -->
+  <rect x="290" y="250" width="620" height="180" class="dropzone" />
+  <text x="600" y="320" font-size="36" text-anchor="middle">📷</text>
+  <text x="600" y="360" class="text-title">Click or drag 1–4 photos here</text>
+  <text x="600" y="390" class="text-hint">Clear, well-lit photos work best (JPEG, PNG, WebP up to 10MB each)</text>
+
+  <!-- Previews -->
+  <rect x="290" y="450" width="140" height="110" class="preview-box" />
+  <rect x="300" y="460" width="120" height="70" fill="#EADCCF" rx="4" />
+  <text x="360" y="500" font-size="24" text-anchor="middle">🗿</text>
+  <text x="360" y="548" font-family="system-ui, sans-serif" font-size="12px" fill="#6B5E54" text-anchor="middle">heirloom-front.jpg</text>
+
+  <rect x="450" y="450" width="140" height="110" class="preview-box" />
+  <rect x="460" y="460" width="120" height="70" fill="#EADCCF" rx="4" />
+  <text x="520" y="500" font-size="24" text-anchor="middle">🏺</text>
+  <text x="520" y="548" font-family="system-ui, sans-serif" font-size="12px" fill="#6B5E54" text-anchor="middle">heirloom-side.png</text>
+
+  <!-- Submit Button -->
+  <rect x="290" y="620" width="620" height="54" class="button" />
+  <text x="600" y="654" class="button-text">Generate 3D Model</text>
+</svg>
