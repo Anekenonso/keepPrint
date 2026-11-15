@@ -24,6 +24,14 @@ export interface RetopologyResult {
   outputs: TaskOutput[];
 }
 
+export interface MultiFormatExportResult {
+  taskId: number;
+  stlUrl?: string;
+  threemfUrl?: string;
+  glbUrl?: string;
+  outputs: TaskOutput[];
+}
+
 export interface Lux3dConfig {
   apiKey?: string;
   region?: 'cn' | 'com';
@@ -214,6 +222,34 @@ export async function runRetopology(
   };
 }
 
+export async function exportPrintFormats(
+  modelUrl: string,
+  client: Lux3dClient,
+  options?: WaitForLux3dTaskOptions & { onProgress?: (result: Lux3dTaskResult) => void }
+): Promise<MultiFormatExportResult> {
+  let taskId: number;
+  try {
+    taskId = await client.multiFormatExport.create({
+      modelUrl,
+      outputFormat: ['stl', '3mf'],
+    });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to initiate multi-format export: ${msg}`);
+  }
+
+  const pollResult = await pollTask(taskId, client, options);
+  const urls = extractModelUrls(pollResult.outputs);
+
+  return {
+    taskId,
+    stlUrl: urls.stlUrl,
+    threemfUrl: urls.threemfUrl,
+    glbUrl: urls.glbUrl || modelUrl,
+    outputs: pollResult.outputs || [],
+  };
+}
+
 export async function pollTask(
   taskId: number,
   client: Lux3dClient,
@@ -266,6 +302,7 @@ export async function generate3D(
     client?: Lux3dClient;
     config?: Lux3dConfig;
     enableRetopo?: boolean;
+    enableExport?: boolean;
     pollOptions?: WaitForLux3dTaskOptions;
     onProgress?: (message: string) => void;
   }
@@ -277,6 +314,7 @@ export async function generate3D(
 
   const client = options?.client ?? createClient(options?.config);
   const enableRetopo = options?.enableRetopo ?? true;
+  const enableExport = options?.enableExport ?? true;
 
   let taskId: number;
   if (input.sourceType === 'image') {
@@ -314,14 +352,33 @@ export async function generate3D(
     }
   }
 
+  let stlUrl = urls.stlUrl;
+  let threemfUrl = urls.threemfUrl;
+  const exportTarget = retopoGlbUrl || urls.glbUrl;
+
+  if (enableExport && exportTarget && (!stlUrl || !threemfUrl)) {
+    options?.onProgress?.('Exporting printable STL and 3MF files...');
+    try {
+      const exportResult = await exportPrintFormats(exportTarget, client, options?.pollOptions);
+      if (exportResult.stlUrl) {
+        stlUrl = exportResult.stlUrl;
+      }
+      if (exportResult.threemfUrl) {
+        threemfUrl = exportResult.threemfUrl;
+      }
+    } catch {
+      // Keep existing URLs if export task fails
+    }
+  }
+
   return {
     taskId,
     status: 'succeeded',
     sourceType: input.sourceType,
     glbUrl: urls.glbUrl,
     retopoGlbUrl: retopoGlbUrl || urls.glbUrl,
-    stlUrl: urls.stlUrl,
-    threemfUrl: urls.threemfUrl,
+    stlUrl,
+    threemfUrl,
     zipUrl: urls.zipUrl,
     outputs: taskResult.outputs || [],
   };

@@ -6,6 +6,7 @@ import {
   pollTask,
   extractModelUrls,
   runRetopology,
+  exportPrintFormats,
   DEFAULT_PRINTABLE_FACE_BUDGET,
 } from '../src/lib/lux3d';
 import {
@@ -219,6 +220,109 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
 
       await expect(
         runRetopology({ modelUrl: 'https://cdn.example.com/raw.glb' }, mockClient)
+      ).rejects.toThrow(/could not be completed/);
+    });
+  });
+
+  describe('TS-05: Multi-Format Export (STL + 3MF)', () => {
+    it('initiates export and returns both stlUrl and threemfUrl on success', async () => {
+      const mockClient = {
+        multiFormatExport: {
+          create: vi.fn().mockResolvedValue(77777),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 77777,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [
+              { content: 'https://cdn.example.com/heirloom.zip' },
+              { content: 'https://cdn.example.com/heirloom.glb' },
+              { content: 'https://cdn.example.com/heirloom.stl' },
+              { content: 'https://cdn.example.com/heirloom.3mf' },
+            ],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const result = await exportPrintFormats('https://cdn.example.com/heirloom.glb', mockClient);
+
+      expect(result.taskId).toBe(77777);
+      expect(result.stlUrl).toBe('https://cdn.example.com/heirloom.stl');
+      expect(result.threemfUrl).toBe('https://cdn.example.com/heirloom.3mf');
+      expect(
+        (mockClient as unknown as { multiFormatExport: { create: ReturnType<typeof vi.fn> } })
+          .multiFormatExport.create
+      ).toHaveBeenCalledWith({
+        modelUrl: 'https://cdn.example.com/heirloom.glb',
+        outputFormat: ['stl', '3mf'],
+      });
+    });
+
+    it('end-to-end generate3D produces both STL and 3MF URLs in successful job', async () => {
+      const mockClient = {
+        imgTo3d: {
+          create: vi.fn().mockResolvedValue(1001),
+        },
+        multiFormatExport: {
+          create: vi.fn().mockResolvedValue(1002),
+        },
+        tasks: {
+          waitFor: vi
+            .fn()
+            // 1st waitFor: initial generation
+            .mockResolvedValueOnce({
+              taskId: 1001,
+              status: LUX3D_STATUS_SUCCESS,
+              outputs: [
+                { content: 'https://cdn.example.com/model.zip' },
+                { content: 'https://cdn.example.com/model.glb' },
+              ],
+            })
+            // 2nd waitFor: multi-format export
+            .mockResolvedValueOnce({
+              taskId: 1002,
+              status: LUX3D_STATUS_SUCCESS,
+              outputs: [
+                { content: 'https://cdn.example.com/model.stl' },
+                { content: 'https://cdn.example.com/model.3mf' },
+              ],
+            }),
+        },
+      } as unknown as Lux3dClient;
+
+      const input: GenerationInput = {
+        sourceType: 'image',
+        images: [{ name: 'ring.png', size: 2048, type: 'image/png' }],
+      };
+
+      const result = await generate3D(input, {
+        client: mockClient,
+        enableRetopo: false, // focus test on export step
+        enableExport: true,
+      });
+
+      expect(result.status).toBe('succeeded');
+      expect(result.glbUrl).toBe('https://cdn.example.com/model.glb');
+      expect(result.stlUrl).toBe('https://cdn.example.com/model.stl');
+      expect(result.threemfUrl).toBe('https://cdn.example.com/model.3mf');
+    });
+
+    it('handles export task failure with clear error', async () => {
+      const mockClient = {
+        multiFormatExport: {
+          create: vi.fn().mockResolvedValue(77778),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 77778,
+            status: LUX3D_STATUS_FAILED,
+            outputs: [],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      await expect(
+        exportPrintFormats('https://cdn.example.com/model.glb', mockClient)
       ).rejects.toThrow(/could not be completed/);
     });
   });
