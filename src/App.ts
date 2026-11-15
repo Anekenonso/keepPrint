@@ -54,7 +54,10 @@ export class App {
       <header>
         <div class="header-inner">
           <div class="brand">
-            <h1>Keepprint</h1>
+            <div class="brand-title-row">
+              <img src="/favicon.svg" alt="Keepprint logo" class="brand-logo" width="36" height="36" />
+              <h1>Keepprint</h1>
+            </div>
             <p>Keep the original safe. Print a copy you can hold.</p>
           </div>
           <button type="button" class="btn-guide-header" id="header-guide-btn" title="View 3D Printing & Slicing Guide">

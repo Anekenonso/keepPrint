@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="public/logo.svg" alt="Keepprint Logo" width="320" />
+</p>
+
 # Keepprint
 
 > Turn a photo or description of a personal family heirloom into a clean, printable 3D model so the original never has to travel or risk damage.
@@ -227,3 +231,9 @@ npm run smoke:serve
 1. **Client-Side API Key**: In Phase 1, the Aholo API key resides in client memory (`VITE_AHOLO_API_KEY`). For production commercial multi-tenant use, a thin backend proxy (e.g. Cloudflare Worker or Edge Function) will handle authentication and rate limiting.
 2. **Generation Quality Variance**: Heavily reflective, transparent, or filigree-thin objects (e.g. intricate wire jewelry) can introduce mesh noise; providing 3–4 contrasting angle photos or selecting "Terracotta/Bronze" preview helps visualize solid geometry.
 3. **Credit Management**: Aholo generation credits are consumed per task; Phase 2 caching (`localStorage`) prevents duplicate generation when refreshing the browser window.
+
+---
+
+## 14. License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
