@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
+  envPrefix: ['VITE_', 'AHOLO_'],
   resolve: {
     alias: {
       'node:path': path.resolve(__dirname, 'src/lib/shims/node-path.ts'),
