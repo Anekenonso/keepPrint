@@ -1,10 +1,13 @@
+import { checkPrintReadiness } from '../lib/validation';
+import type { PrintReadiness } from '../lib/types';
+
 export interface DownloadUrls {
   stlUrl?: string;
   threemfUrl?: string;
   glbUrl?: string;
 }
 
-export type PrintReadiness = 'good' | 'attention';
+export type { PrintReadiness };
 
 export interface DownloadPanelOptions {
   urls: DownloadUrls;
@@ -25,20 +28,15 @@ export class DownloadPanel {
 
   public render(): void {
     const { stlUrl, threemfUrl, glbUrl } = this.options.urls;
-    const hasPrintableFile = Boolean(stlUrl || threemfUrl);
-    const readiness: PrintReadiness =
-      this.options.readiness || (hasPrintableFile ? 'good' : 'attention');
+    const computedReport = checkPrintReadiness({
+      hasStl: Boolean(stlUrl),
+      hasThreeMf: Boolean(threemfUrl),
+      hasGlb: Boolean(glbUrl),
+      faceCount: 80000,
+    });
 
-    const defaultNotes =
-      readiness === 'good'
-        ? [
-            'Manifold geometry verified via retopology',
-            'Slicer-ready for FDM and Resin 3D printers',
-            'Watertight outer mesh boundary',
-          ]
-        : ['Retopology verification recommended before printing'];
-
-    const notes = this.options.readinessNotes || defaultNotes;
+    const readiness: PrintReadiness = this.options.readiness || computedReport.readiness;
+    const notes = this.options.readinessNotes || computedReport.notes;
 
     this.container.innerHTML = `
       <div class="download-panel" id="download-panel">

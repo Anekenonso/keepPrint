@@ -3,9 +3,11 @@ import {
   validateImageFile,
   validatePrompt,
   validateGenerationInput,
+  checkPrintReadiness,
+  modelPrintMetadataSchema,
   MAX_IMAGE_SIZE_BYTES,
 } from '../src/lib/validation';
-import type { GenerationInput } from '../src/lib/types';
+import type { GenerationInput, ModelPrintMetadata } from '../src/lib/types';
 
 describe('TS-01: Input Validation', () => {
   describe('Image File Validation', () => {
@@ -163,6 +165,210 @@ describe('TS-01: Input Validation', () => {
       if (!result.success) {
         expect(result.errors.some((msg) => msg.includes('at most 4 photos'))).toBe(true);
       }
+    });
+  });
+});
+
+describe('T-13 / R-07: Print-Readiness Checks', () => {
+  describe('File Format Presence', () => {
+    it('rates readiness as "good" when STL is available', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: false,
+        hasGlb: true,
+        faceCount: 80000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('good');
+      expect(report.score).toBeGreaterThanOrEqual(90);
+      expect(report.checks.find((c) => c.id === 'file-presence')?.passed).toBe(true);
+      expect(report.notes).toContain('Slicer-ready for FDM and Resin 3D printers');
+    });
+
+    it('rates readiness as "good" when 3MF is available', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: false,
+        hasThreeMf: true,
+        hasGlb: true,
+        faceCount: 80000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('good');
+      expect(report.checks.find((c) => c.id === 'file-presence')?.passed).toBe(true);
+    });
+
+    it('rates readiness as "attention" when neither STL nor 3MF is present', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: false,
+        hasThreeMf: false,
+        hasGlb: true,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('attention');
+      expect(report.checks.find((c) => c.id === 'file-presence')?.passed).toBe(false);
+      expect(report.checks.find((c) => c.id === 'file-presence')?.status).toBe('fail');
+      expect(report.notes).toContain('Missing STL or 3MF slice file');
+    });
+  });
+
+  describe('File Size Integrity Checks', () => {
+    it('fails file-size integrity when file is smaller than 100 bytes', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        fileSizeBytes: 42, // Under MIN_PRINTABLE_FILE_SIZE_BYTES
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('attention');
+      const sizeCheck = report.checks.find((c) => c.id === 'file-size');
+      expect(sizeCheck?.passed).toBe(false);
+      expect(sizeCheck?.status).toBe('fail');
+      expect(report.notes).toContain('Export file appears corrupted or empty');
+    });
+
+    it('warns when file size exceeds 150 MB', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: false,
+        fileSizeBytes: 180 * 1024 * 1024, // 180 MB
+        faceCount: 80000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      const sizeCheck = report.checks.find((c) => c.id === 'file-size');
+      expect(sizeCheck?.status).toBe('warning');
+      expect(report.notes).toContain('Large file size; ensure slicer has sufficient memory');
+    });
+
+    it('passes when file size is in normal range', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        fileSizeBytes: 8 * 1024 * 1024, // 8 MB
+        faceCount: 80000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('good');
+      const sizeCheck = report.checks.find((c) => c.id === 'file-size');
+      expect(sizeCheck?.passed).toBe(true);
+      expect(sizeCheck?.status).toBe('pass');
+    });
+  });
+
+  describe('Mesh Density Checks', () => {
+    it('passes optimal mesh density check with 80k retopo faces', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        faceCount: 80000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('good');
+      const meshCheck = report.checks.find((c) => c.id === 'mesh-density');
+      expect(meshCheck?.passed).toBe(true);
+      expect(report.notes).toContain('Manifold geometry verified via retopology');
+    });
+
+    it('warns on very low face counts (<2,000)', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: false,
+        faceCount: 800,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      const meshCheck = report.checks.find((c) => c.id === 'mesh-density');
+      expect(meshCheck?.status).toBe('warning');
+      expect(report.notes).toContain('Low polygon density may result in visible facets');
+    });
+
+    it('warns on excessive face counts (>200,000)', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: false,
+        faceCount: 350000,
+      };
+
+      const report = checkPrintReadiness(metadata);
+      const meshCheck = report.checks.find((c) => c.id === 'mesh-density');
+      expect(meshCheck?.status).toBe('warning');
+      expect(report.notes).toContain('High face count; recommend slicer polygon reduction');
+    });
+  });
+
+  describe('Dimensions & Build Volume Checks', () => {
+    it('passes when model dimensions fit standard build volume', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        dimensionsMm: { width: 75, depth: 75, height: 110 },
+      };
+
+      const report = checkPrintReadiness(metadata);
+      expect(report.readiness).toBe('good');
+      const dimCheck = report.checks.find((c) => c.id === 'dimensions');
+      expect(dimCheck?.passed).toBe(true);
+      expect(report.notes).toContain('Fits standard 3D printer build volume');
+    });
+
+    it('warns when model features are dangerously thin (<2mm)', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        dimensionsMm: { width: 50, depth: 50, height: 1.2 },
+      };
+
+      const report = checkPrintReadiness(metadata);
+      const dimCheck = report.checks.find((c) => c.id === 'dimensions');
+      expect(dimCheck?.status).toBe('warning');
+      expect(report.notes).toContain(
+        'Thin features detected; check slicer preview for wall continuity'
+      );
+    });
+
+    it('warns when model exceeds standard 250mm print bed', () => {
+      const metadata: ModelPrintMetadata = {
+        hasStl: true,
+        hasThreeMf: true,
+        dimensionsMm: { width: 320, depth: 150, height: 100 },
+      };
+
+      const report = checkPrintReadiness(metadata);
+      const dimCheck = report.checks.find((c) => c.id === 'dimensions');
+      expect(dimCheck?.status).toBe('warning');
+      expect(report.notes).toContain('Model exceeds standard 250mm bed; scale down in slicer');
+    });
+  });
+
+  describe('Metadata Schema Validation', () => {
+    it('validates correct metadata schema', () => {
+      const valid = {
+        hasStl: true,
+        hasThreeMf: true,
+        fileSizeBytes: 1024 * 1024,
+        faceCount: 50000,
+        dimensionsMm: { width: 60, depth: 60, height: 90 },
+      };
+
+      const parsed = modelPrintMetadataSchema.safeParse(valid);
+      expect(parsed.success).toBe(true);
+    });
+
+    it('rejects negative sizes or dimensions in schema', () => {
+      const invalid = {
+        hasStl: true,
+        hasThreeMf: true,
+        fileSizeBytes: -10,
+      };
+
+      const parsed = modelPrintMetadataSchema.safeParse(invalid);
+      expect(parsed.success).toBe(false);
     });
   });
 });

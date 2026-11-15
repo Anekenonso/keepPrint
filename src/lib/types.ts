@@ -29,3 +29,36 @@ export interface GenerationInput {
   prompt?: string;
   images?: ImageInputItem[];
 }
+
+export type PrintReadiness = 'good' | 'attention';
+
+export interface BoundingBoxMm {
+  width: number;
+  depth: number;
+  height: number;
+}
+
+export interface ModelPrintMetadata {
+  hasStl: boolean;
+  hasThreeMf: boolean;
+  hasGlb?: boolean;
+  fileSizeBytes?: number;
+  faceCount?: number;
+  dimensionsMm?: BoundingBoxMm;
+}
+
+export interface PrintReadinessCheckItem {
+  id: string;
+  name: string;
+  passed: boolean;
+  status: 'pass' | 'warning' | 'fail';
+  message: string;
+}
+
+export interface PrintReadinessReport {
+  readiness: PrintReadiness;
+  score: number;
+  checks: PrintReadinessCheckItem[];
+  notes: string[];
+  recommendation: string;
+}
