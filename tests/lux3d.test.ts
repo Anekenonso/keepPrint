@@ -5,6 +5,8 @@ import {
   createTextTo3dTask,
   pollTask,
   extractModelUrls,
+  runRetopology,
+  DEFAULT_PRINTABLE_FACE_BUDGET,
 } from '../src/lib/lux3d';
 import {
   LUX3D_STATUS_SUCCESS,
@@ -61,6 +63,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
         img: 'data:image/jpeg;base64,sample',
         version: 'G1',
+        faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
     });
 
@@ -79,6 +82,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(mockClient.textTo3d.create).toHaveBeenCalledWith({
         prompt: 'Traditional brass drinking vessel',
         version: 'G1',
+        faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
     });
 
@@ -134,6 +138,88 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(result.glbUrl).toBe('https://cdn.example.com/heirloom.glb');
       expect(stages).toContain('Uploading heirloom photo to Lux3D...');
       expect(stages).toContain('Generating 3D heirloom mesh...');
+    });
+  });
+
+  describe('TS-04: Retopology Step', () => {
+    it('runs retopology with target face budget and returns new model URL', async () => {
+      const mockClient = {
+        retopology: {
+          create: vi.fn().mockResolvedValue(55555),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 55555,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [{ content: 'https://cdn.example.com/retopo-clean.glb' }],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const result = await runRetopology(
+        {
+          modelUrl: 'https://cdn.example.com/raw.glb',
+          faceBudget: 50000,
+        },
+        mockClient
+      );
+
+      expect(result.taskId).toBe(55555);
+      expect(result.retopoGlbUrl).toBe('https://cdn.example.com/retopo-clean.glb');
+      expect(
+        (mockClient as unknown as { retopology: { create: ReturnType<typeof vi.fn> } }).retopology
+          .create
+      ).toHaveBeenCalledWith({
+        modelUrl: 'https://cdn.example.com/raw.glb',
+        faceBudget: 50000,
+      });
+    });
+
+    it('falls back to default printable face budget when omitted', async () => {
+      const mockClient = {
+        retopology: {
+          create: vi.fn().mockResolvedValue(55556),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 55556,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [{ content: 'https://cdn.example.com/retopo-default.glb' }],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const result = await runRetopology(
+        { modelUrl: 'https://cdn.example.com/raw.glb' },
+        mockClient
+      );
+      expect(result.retopoGlbUrl).toBe('https://cdn.example.com/retopo-default.glb');
+      expect(
+        (mockClient as unknown as { retopology: { create: ReturnType<typeof vi.fn> } }).retopology
+          .create
+      ).toHaveBeenCalledWith({
+        modelUrl: 'https://cdn.example.com/raw.glb',
+        faceBudget: DEFAULT_PRINTABLE_FACE_BUDGET,
+      });
+    });
+
+    it('handles retopology task failure with clear error', async () => {
+      const mockClient = {
+        retopology: {
+          create: vi.fn().mockResolvedValue(55557),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 55557,
+            status: LUX3D_STATUS_FAILED,
+            outputs: [],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      await expect(
+        runRetopology({ modelUrl: 'https://cdn.example.com/raw.glb' }, mockClient)
+      ).rejects.toThrow(/could not be completed/);
     });
   });
 

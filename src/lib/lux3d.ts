@@ -11,6 +11,19 @@ import {
 import type { GenerationInput, SourceType } from './types';
 import { validateGenerationInput } from './validation';
 
+export const DEFAULT_PRINTABLE_FACE_BUDGET = 80000;
+
+export interface RetopologyRequest {
+  modelUrl: string;
+  faceBudget?: number;
+}
+
+export interface RetopologyResult {
+  taskId: number;
+  retopoGlbUrl: string;
+  outputs: TaskOutput[];
+}
+
 export interface Lux3dConfig {
   apiKey?: string;
   region?: 'cn' | 'com';
@@ -21,6 +34,7 @@ export interface GenerationResult {
   status: 'succeeded' | 'failed';
   sourceType: SourceType;
   glbUrl?: string;
+  retopoGlbUrl?: string;
   stlUrl?: string;
   threemfUrl?: string;
   zipUrl?: string;
@@ -111,14 +125,16 @@ export function extractModelUrls(outputs: TaskOutput[] | undefined): {
 }
 
 export async function createImageTo3dTask(
-  params: { img: string } | { imgs: string[] },
+  params: { img: string; faceCount?: number } | { imgs: string[]; faceCount?: number },
   client: Lux3dClient
 ): Promise<number> {
   try {
+    const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
     if ('imgs' in params && params.imgs.length > 1) {
       return await client.imgTo3d.create({
         imgs: params.imgs,
         version: 'G1',
+        faceCount,
       });
     }
 
@@ -126,6 +142,7 @@ export async function createImageTo3dTask(
     return await client.imgTo3d.create({
       img: singleImg,
       version: 'G1',
+      faceCount,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown network error';
@@ -134,18 +151,67 @@ export async function createImageTo3dTask(
 }
 
 export async function createTextTo3dTask(
-  params: { prompt: string },
+  params: { prompt: string; faceCount?: number },
   client: Lux3dClient
 ): Promise<number> {
   try {
+    const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
     return await client.textTo3d.create({
       prompt: params.prompt,
       version: 'G1',
+      faceCount,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown network error';
     throw new Error(`Failed to start 3D text generation: ${message}`);
   }
+}
+
+export async function runRetopology(
+  request: RetopologyRequest,
+  client: Lux3dClient,
+  options?: WaitForLux3dTaskOptions & { onProgress?: (result: Lux3dTaskResult) => void }
+): Promise<RetopologyResult> {
+  const faceBudget = request.faceBudget ?? DEFAULT_PRINTABLE_FACE_BUDGET;
+
+  let taskId: number;
+  const anyClient = client as unknown as {
+    retopology?: {
+      create: (params: { modelUrl: string; faceBudget?: number }) => Promise<number>;
+    };
+    multiFormatExport?: {
+      create: (params: { modelUrl: string; outputFormat: string[] }) => Promise<number>;
+    };
+  };
+
+  try {
+    if (typeof anyClient.retopology?.create === 'function') {
+      taskId = await anyClient.retopology.create({
+        modelUrl: request.modelUrl,
+        faceBudget,
+      });
+    } else if (typeof anyClient.multiFormatExport?.create === 'function') {
+      taskId = await anyClient.multiFormatExport.create({
+        modelUrl: request.modelUrl,
+        outputFormat: ['obj_zip'],
+      });
+    } else {
+      throw new Error('No retopology or post-processing endpoint available.');
+    }
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : 'Unknown error';
+    throw new Error(`Failed to start retopology task: ${msg}`);
+  }
+
+  const pollResult = await pollTask(taskId, client, options);
+  const urls = extractModelUrls(pollResult.outputs);
+  const retopoGlbUrl = urls.glbUrl || pollResult.outputs[0]?.content || request.modelUrl;
+
+  return {
+    taskId,
+    retopoGlbUrl,
+    outputs: pollResult.outputs || [],
+  };
 }
 
 export async function pollTask(
@@ -199,6 +265,7 @@ export async function generate3D(
   options?: {
     client?: Lux3dClient;
     config?: Lux3dConfig;
+    enableRetopo?: boolean;
     pollOptions?: WaitForLux3dTaskOptions;
     onProgress?: (message: string) => void;
   }
@@ -209,6 +276,7 @@ export async function generate3D(
   }
 
   const client = options?.client ?? createClient(options?.config);
+  const enableRetopo = options?.enableRetopo ?? true;
 
   let taskId: number;
   if (input.sourceType === 'image') {
@@ -229,12 +297,29 @@ export async function generate3D(
 
   options?.onProgress?.('Finalizing 3D model assets...');
   const urls = extractModelUrls(taskResult.outputs);
+  let retopoGlbUrl: string | undefined;
+
+  if (enableRetopo && urls.glbUrl) {
+    options?.onProgress?.('Running retopology for slicer print-readiness...');
+    try {
+      const retopoResult = await runRetopology(
+        { modelUrl: urls.glbUrl },
+        client,
+        options?.pollOptions
+      );
+      retopoGlbUrl = retopoResult.retopoGlbUrl;
+    } catch {
+      // Graceful fallback to original model URL if post-process retopo fails
+      retopoGlbUrl = urls.glbUrl;
+    }
+  }
 
   return {
     taskId,
     status: 'succeeded',
     sourceType: input.sourceType,
     glbUrl: urls.glbUrl,
+    retopoGlbUrl: retopoGlbUrl || urls.glbUrl,
     stlUrl: urls.stlUrl,
     threemfUrl: urls.threemfUrl,
     zipUrl: urls.zipUrl,
