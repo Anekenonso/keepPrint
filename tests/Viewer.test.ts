@@ -77,4 +77,124 @@ describe('TS-08: Viewer Component & WebGL Handling', () => {
     // In default JSDOM without canvas WebGL support, it returns false safely without throwing
     expect(typeof isWebGLAvailable()).toBe('boolean');
   });
+
+  describe('T-17: Material & Color Preview Controls', () => {
+    it('renders material preview toolbar with all finish options', () => {
+      const viewer = new ViewerComponent(container, {
+        glbUrl: 'https://cdn.example.com/heirloom.glb',
+        checkWebGL: () => true,
+      });
+      viewer.render();
+
+      const toolbar = container.querySelector('.material-preview-toolbar');
+      expect(toolbar).not.toBeNull();
+      expect(container.querySelector('#mat-btn-original')).not.toBeNull();
+      expect(container.querySelector('#mat-btn-clay')).not.toBeNull();
+      expect(container.querySelector('#mat-btn-terracotta')).not.toBeNull();
+      expect(container.querySelector('#mat-btn-bronze')).not.toBeNull();
+
+      expect(viewer.getMaterialMode()).toBe('original');
+      expect(container.querySelector('#mat-btn-original')?.classList.contains('active')).toBe(true);
+      expect(container.querySelector('#heirloom-viewer')?.classList.contains('mat-original')).toBe(
+        true
+      );
+    });
+
+    it('toggles finish to White Clay when clay button is clicked', () => {
+      const onMaterialChange = vi.fn();
+      const viewer = new ViewerComponent(container, {
+        glbUrl: 'https://cdn.example.com/heirloom.glb',
+        onMaterialChange,
+        checkWebGL: () => true,
+      });
+      viewer.render();
+
+      const clayBtn = container.querySelector<HTMLButtonElement>('#mat-btn-clay')!;
+      clayBtn.click();
+
+      expect(viewer.getMaterialMode()).toBe('clay');
+      expect(clayBtn.classList.contains('active')).toBe(true);
+      expect(clayBtn.getAttribute('aria-pressed')).toBe('true');
+      expect(container.querySelector('#mat-btn-original')?.classList.contains('active')).toBe(
+        false
+      );
+
+      const modelViewerEl = container.querySelector('#heirloom-viewer')!;
+      expect(modelViewerEl.classList.contains('mat-clay')).toBe(true);
+      expect(modelViewerEl.getAttribute('exposure')).toBe('1.1');
+      expect(onMaterialChange).toHaveBeenCalledWith('clay');
+    });
+
+    it('switches between finishes and applies PBR factors when model materials exist', () => {
+      const setBaseColorFactor = vi.fn();
+      const setMetallicFactor = vi.fn();
+      const setRoughnessFactor = vi.fn();
+
+      const viewer = new ViewerComponent(container, {
+        glbUrl: 'https://cdn.example.com/heirloom.glb',
+        checkWebGL: () => true,
+      });
+      viewer.render();
+
+      // Mock model-viewer internal PBR materials
+      const viewerEl = container.querySelector('#heirloom-viewer') as unknown as {
+        model?: {
+          materials?: Array<{
+            pbrMetallicRoughness: {
+              setBaseColorFactor: typeof setBaseColorFactor;
+              setMetallicFactor: typeof setMetallicFactor;
+              setRoughnessFactor: typeof setRoughnessFactor;
+            };
+          }>;
+        };
+      };
+      viewerEl.model = {
+        materials: [
+          {
+            pbrMetallicRoughness: {
+              setBaseColorFactor,
+              setMetallicFactor,
+              setRoughnessFactor,
+            },
+          },
+        ],
+      };
+
+      // Switch to Terracotta
+      viewer.setMaterialMode('terracotta');
+      expect(viewer.getMaterialMode()).toBe('terracotta');
+      expect(setBaseColorFactor).toHaveBeenCalledWith([0.77, 0.36, 0.15, 1.0]);
+      expect(setMetallicFactor).toHaveBeenCalledWith(0.05);
+      expect(setRoughnessFactor).toHaveBeenCalledWith(0.7);
+
+      // Switch to Bronze
+      viewer.setMaterialMode('bronze');
+      expect(viewer.getMaterialMode()).toBe('bronze');
+      expect(setBaseColorFactor).toHaveBeenCalledWith([0.65, 0.48, 0.28, 1.0]);
+      expect(setMetallicFactor).toHaveBeenCalledWith(0.85);
+      expect(setRoughnessFactor).toHaveBeenCalledWith(0.3);
+
+      // Switch back to Original
+      viewer.setMaterialMode('original');
+      expect(viewer.getMaterialMode()).toBe('original');
+      expect(setBaseColorFactor).toHaveBeenCalledWith([1.0, 1.0, 1.0, 1.0]);
+    });
+
+    it('honors initialMaterial configuration option', () => {
+      const viewer = new ViewerComponent(container, {
+        glbUrl: 'https://cdn.example.com/heirloom.glb',
+        initialMaterial: 'terracotta',
+        checkWebGL: () => true,
+      });
+      viewer.render();
+
+      expect(viewer.getMaterialMode()).toBe('terracotta');
+      expect(container.querySelector('#mat-btn-terracotta')?.classList.contains('active')).toBe(
+        true
+      );
+      expect(
+        container.querySelector('#heirloom-viewer')?.classList.contains('mat-terracotta')
+      ).toBe(true);
+    });
+  });
 });

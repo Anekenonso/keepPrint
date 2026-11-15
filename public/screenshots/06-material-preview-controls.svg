@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" width="1200" height="800">
+  <defs>
+    <style>
+      .bg { fill: #F8F4EF; }
+      .card-bg { fill: #FFFFFF; stroke: #E8DFD5; stroke-width: 1; rx: 16px; filter: drop-shadow(0 4px 16px rgba(0,0,0,0.06)); }
+      .header-title { fill: #C45C26; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 28px; font-weight: 700; }
+      .header-sub { fill: #6B5E54; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 15px; }
+      .section-title { fill: #1F1A17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 20px; font-weight: 600; }
+      .toolbar-bg { fill: #FBF9F6; stroke: #E8DFD5; stroke-width: 1; rx: 8px; }
+      .toolbar-label { fill: #1F1A17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 600; }
+      .btn-mat { fill: #FFFFFF; stroke: #E8DFD5; stroke-width: 1; rx: 6px; cursor: pointer; }
+      .btn-mat-active { fill: #FCF1EA; stroke: #C45C26; stroke-width: 1.5; rx: 6px; cursor: pointer; }
+      .mat-text { fill: #1F1A17; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; font-weight: 500; }
+      .mat-text-active { fill: #C45C26; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 12px; font-weight: 600; }
+      .viewer-box { fill: #F4EDE3; stroke: #E8DFD5; stroke-width: 1; rx: 12px; }
+      .badge-bg { fill: #E9F5EE; stroke: #C2E5D0; stroke-width: 1; rx: 12px; }
+      .badge-text { fill: #2F6F4E; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 13px; font-weight: 600; }
+      .btn-download { fill: #C45C26; rx: 8px; }
+      .btn-download-text { fill: #FFFFFF; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; font-weight: 600; text-anchor: middle; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="800" class="bg" />
+
+  <g transform="translate(180, 40)">
+    <!-- Header -->
+    <text x="0" y="32" class="header-title">Keepprint</text>
+    <text x="0" y="58" class="header-sub">Keep the original safe. Print a copy you can hold.</text>
+
+    <!-- Main Card -->
+    <g transform="translate(0, 80)">
+      <rect width="840" height="620" class="card-bg" />
+
+      <!-- Section Title -->
+      <text x="32" y="44" class="section-title">Your 3D Heirloom Model</text>
+      <text x="32" y="66" class="header-sub">Inspect the model with multiple print finishes and export slicer-ready files.</text>
+
+      <!-- Material Preview Toolbar -->
+      <g transform="translate(32, 90)">
+        <rect width="776" height="46" class="toolbar-bg" />
+        <text x="16" y="28" class="toolbar-label">Preview Finish:</text>
+
+        <!-- Option 1: Full Color -->
+        <g transform="translate(130, 8)">
+          <rect width="115" height="30" class="btn-mat" />
+          <circle cx="18" cy="15" r="6" fill="#C45C26" />
+          <text x="32" y="20" class="mat-text">Full Color</text>
+        </g>
+
+        <!-- Option 2: White Clay (Active) -->
+        <g transform="translate(255, 8)">
+          <rect width="115" height="30" class="btn-mat-active" />
+          <circle cx="18" cy="15" r="6" fill="#ECECEC" stroke="#CCCCCC" stroke-width="1" />
+          <text x="32" y="20" class="mat-text-active">White Clay</text>
+        </g>
+
+        <!-- Option 3: Terracotta -->
+        <g transform="translate(380, 8)">
+          <rect width="115" height="30" class="btn-mat" />
+          <circle cx="18" cy="15" r="6" fill="#C45C26" />
+          <text x="32" y="20" class="mat-text">Terracotta</text>
+        </g>
+
+        <!-- Option 4: Bronze -->
+        <g transform="translate(505, 8)">
+          <rect width="115" height="30" class="btn-mat" />
+          <circle cx="18" cy="15" r="6" fill="#9B7244" />
+          <text x="32" y="20" class="mat-text">Bronze</text>
+        </g>
+      </g>
+
+      <!-- 3D Model Viewer Canvas -->
+      <g transform="translate(32, 148)">
+        <rect width="776" height="280" class="viewer-box" />
+
+        <!-- 3D Heirloom Vessel Representation in White Clay -->
+        <path d="M 388 60 Q 420 100 450 140 Q 460 200 418 240 L 358 240 Q 316 200 326 140 Q 356 100 388 60 Z" fill="#E8E8E8" stroke="#D0D0D0" stroke-width="2" />
+        <ellipse cx="388" cy="60" rx="32" ry="10" fill="#F4F4F4" stroke="#D0D0D0" stroke-width="1.5" />
+        <ellipse cx="388" cy="240" rx="30" ry="8" fill="#D8D8D8" stroke="#D0D0D0" stroke-width="1.5" />
+
+        <!-- Shading / Contour lines for 3D depth -->
+        <path d="M 335 150 Q 388 165 441 150" fill="none" stroke="#C4C4C4" stroke-width="1.5" stroke-dasharray="2,2" />
+        <path d="M 345 190 Q 388 205 431 190" fill="none" stroke="#C4C4C4" stroke-width="1.5" stroke-dasharray="2,2" />
+
+        <!-- Viewer Controls hint -->
+        <text x="388" y="268" text-anchor="middle" fill="#8C7E72" font-size="12" font-family="sans-serif">
+          Rotate: Drag / Swipe • Zoom: Pinch / Scroll • Finish: White Clay Matte
+        </text>
+      </g>
+
+      <!-- Readiness Badge & Actions Bar -->
+      <g transform="translate(32, 442)">
+        <rect width="180" height="30" class="badge-bg" />
+        <text x="14" y="20" class="badge-text">● Print Readiness: Good</text>
+
+        <!-- Download Buttons -->
+        <g transform="translate(0, 42)">
+          <rect width="250" height="44" class="btn-download" />
+          <text x="125" y="27" class="btn-download-text">📦 Download STL (Print-Ready)</text>
+        </g>
+        <g transform="translate(262, 42)">
+          <rect width="250" height="44" fill="#FFFFFF" stroke="#E8DFD5" stroke-width="2" rx="8" />
+          <text x="125" y="27" fill="#1F1A17" font-size="14" font-weight="600" text-anchor="middle" font-family="sans-serif">📐 Download 3MF (Color &amp; Slices)</text>
+        </g>
+        <g transform="translate(524, 42)">
+          <rect width="252" height="44" fill="#FFFFFF" stroke="#C45C26" stroke-width="1.5" rx="8" />
+          <text x="126" y="27" fill="#C45C26" font-size="14" font-weight="600" text-anchor="middle" font-family="sans-serif">📖 3D Print &amp; Slicing Guide</text>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
