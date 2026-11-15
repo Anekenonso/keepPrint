@@ -57,7 +57,44 @@ function fetchUrl(url) {
   });
 }
 
-if (arg === '--build' || (arg && fs.existsSync(arg))) {
+async function serveAndCheck() {
+  const filePath = 'dist/index.html';
+  if (!fs.existsSync(filePath)) {
+    console.error(`[smoke] FAILURE: ${filePath} does not exist. Run npm run build first.`);
+    process.exit(1);
+  }
+  const content = fs.readFileSync(filePath, 'utf-8');
+  const server = http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/html' });
+    res.end(content);
+  });
+
+  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  const port = server.address().port;
+  const liveUrl = `http://127.0.0.1:${port}`;
+  console.log(`[smoke] Ephemeral preview server started at ${liveUrl}`);
+
+  try {
+    const html = await fetchUrl(liveUrl);
+    if (html.includes(EXPECTED_STRING)) {
+      console.log(`[smoke] SUCCESS: Live server at ${liveUrl} served "${EXPECTED_STRING}".`);
+      server.close();
+      process.exit(0);
+    } else {
+      console.error(`[smoke] FAILURE: Expected string "${EXPECTED_STRING}" not found in response.`);
+      server.close();
+      process.exit(1);
+    }
+  } catch (err) {
+    console.error(`[smoke] FAILURE: Error fetching ephemeral server: ${err.message}`);
+    server.close();
+    process.exit(1);
+  }
+}
+
+if (arg === '--serve') {
+  await serveAndCheck();
+} else if (arg === '--build' || (arg && fs.existsSync(arg))) {
   checkDistFile();
 } else {
   const targetUrl = process.env.VITE_APP_URL || arg || 'http://localhost:5173';
