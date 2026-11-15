@@ -35,6 +35,7 @@ export interface MultiFormatExportResult {
 export interface Lux3dConfig {
   apiKey?: string;
   region?: 'cn' | 'com';
+  baseUrl?: string;
   fetch?: typeof fetch;
 }
 
@@ -78,6 +79,19 @@ export function getAholoConfig(overrides?: Lux3dConfig): { apiKey: string; regio
   return { apiKey, region };
 }
 
+export function resolveClientBaseUrl(region: 'com' | 'cn', customBaseUrl?: string): string {
+  if (customBaseUrl) {
+    return customBaseUrl.replace(/\/$/, '');
+  }
+  // In browser environments, route requests through the local/edge reverse proxy
+  // (/api/aholo-global or /api/aholo-cn) to prevent CORS errors, as Aholo's API
+  // gateway omits Access-Control-Allow-Origin headers on POST responses.
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return region === 'cn' ? '/api/aholo-cn' : '/api/aholo-global';
+  }
+  return region === 'cn' ? 'https://api.aholo.cn' : 'https://api.aholo.ai';
+}
+
 export function createClient(config?: Lux3dConfig): Lux3dClient {
   const { apiKey, region } = getAholoConfig(config);
 
@@ -93,9 +107,12 @@ export function createClient(config?: Lux3dConfig): Lux3dClient {
       return globalThis.fetch(input, init);
     });
 
+  const baseUrl = resolveClientBaseUrl(region, config?.baseUrl);
+
   return createLux3dClient({
     apiKey,
     region,
+    baseUrl,
     fetch: safeFetch,
   });
 }

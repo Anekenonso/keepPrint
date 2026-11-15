@@ -9,6 +9,7 @@ import {
   exportPrintFormats,
   createClient,
   getAholoConfig,
+  resolveClientBaseUrl,
   DEFAULT_PRINTABLE_FACE_BUDGET,
 } from '../src/lib/lux3d';
 import {
@@ -456,6 +457,18 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       const config = getAholoConfig({ apiKey: 'custom-key', region: 'cn' });
       expect(config.apiKey).toBe('custom-key');
       expect(config.region).toBe('cn');
+    });
+
+    it('resolves reverse proxy baseUrl in browser environment to avoid CORS', () => {
+      // In JSDOM, window and window.location are defined
+      const globalUrl = resolveClientBaseUrl('com');
+      expect(globalUrl).toBe('/api/aholo-global');
+
+      const cnUrl = resolveClientBaseUrl('cn');
+      expect(cnUrl).toBe('/api/aholo-cn');
+
+      const custom = resolveClientBaseUrl('com', 'https://custom.api.com/');
+      expect(custom).toBe('https://custom.api.com');
     });
   });
 });

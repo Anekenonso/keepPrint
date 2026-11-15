@@ -3,6 +3,18 @@
   publish = "dist"
 
 [[redirects]]
+  from = "/api/aholo-global/*"
+  to = "https://api.aholo.ai/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/aholo-cn/*"
+  to = "https://api.aholo.cn/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
