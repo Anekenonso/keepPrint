@@ -1,8 +1,40 @@
+import { UploadForm } from './components/UploadForm';
+import { ProgressComponent, type ProgressStage } from './components/Progress';
+import { ViewerComponent } from './components/Viewer';
+import { DownloadPanel } from './components/DownloadPanel';
+import { generate3D, type GenerationResult } from './lib/lux3d';
+import type { GenerationInput, Job } from './lib/types';
+import type { Lux3dClient } from '@manycore/aholo-sdk-lux3d';
+
+export type AppState = 'upload' | 'generating' | 'result';
+
+export interface AppOptions {
+  client?: Lux3dClient;
+  transitionDelayMs?: number;
+  checkWebGL?: () => boolean;
+  generator?: (
+    input: GenerationInput,
+    options?: {
+      client?: Lux3dClient;
+      enableRetopo?: boolean;
+      enableExport?: boolean;
+      onProgress?: (message: string) => void;
+      signal?: AbortSignal;
+    }
+  ) => Promise<GenerationResult>;
+}
+
 export class App {
   private container: HTMLElement;
+  private options: AppOptions;
+  private state: AppState = 'upload';
+  private currentJob: Job | null = null;
+  private lastInput: GenerationInput | null = null;
+  private abortController: AbortController | null = null;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, options?: AppOptions) {
     this.container = container;
+    this.options = options || {};
   }
 
   public render(): void {
@@ -11,10 +43,192 @@ export class App {
         <h1>Keepprint</h1>
         <p>Keep the original safe. Print a copy you can hold.</p>
       </header>
-      <main class="card" id="main-content">
-        <h2>Preserve your family heirlooms in 3D</h2>
-        <p>Turn a photo or description of a personal heirloom into a clean, printable 3D model.</p>
+      <main class="card" id="main-content" role="main">
+        <div id="step-container"></div>
       </main>
     `;
+
+    const stepContainer = this.container.querySelector<HTMLElement>('#step-container');
+    if (!stepContainer) return;
+
+    if (this.state === 'upload') {
+      this.renderUpload(stepContainer);
+    } else if (this.state === 'generating') {
+      this.renderProgress(stepContainer);
+    } else if (this.state === 'result') {
+      this.renderResult(stepContainer);
+    }
+  }
+
+  private renderUpload(parent: HTMLElement): void {
+    const uploadForm = new UploadForm(parent, {
+      onSubmit: (payload) => {
+        this.startGeneration(payload);
+      },
+    });
+    uploadForm.render();
+  }
+
+  private renderProgress(parent: HTMLElement): void {
+    const progress = new ProgressComponent(parent, {
+      onCancel: () => {
+        if (this.abortController) {
+          this.abortController.abort();
+        }
+        this.state = 'upload';
+        this.render();
+      },
+      onRetry: () => {
+        if (this.lastInput) {
+          this.startGeneration(this.lastInput);
+        } else {
+          this.state = 'upload';
+          this.render();
+        }
+      },
+    });
+    progress.render();
+  }
+
+  private renderResult(parent: HTMLElement): void {
+    parent.innerHTML = `
+      <div class="result-view">
+        <div class="result-header">
+          <h2>Your 3D Heirloom Model</h2>
+          <p>Inspect the full-color model in 3D and download clean, print-ready files for your slicer.</p>
+        </div>
+        <div id="viewer-mount"></div>
+        <div id="download-mount"></div>
+      </div>
+    `;
+
+    const viewerMount = parent.querySelector<HTMLElement>('#viewer-mount');
+    const downloadMount = parent.querySelector<HTMLElement>('#download-mount');
+
+    if (viewerMount && this.currentJob) {
+      const viewer = new ViewerComponent(viewerMount, {
+        glbUrl: this.currentJob.retopoGlbUrl || this.currentJob.glbUrl,
+        altText: 'Interactive 3D model of your family heirloom',
+        checkWebGL: this.options.checkWebGL,
+      });
+      viewer.render();
+    }
+
+    if (downloadMount && this.currentJob) {
+      const panel = new DownloadPanel(downloadMount, {
+        urls: {
+          stlUrl: this.currentJob.stlUrl,
+          threemfUrl: this.currentJob.threemfUrl,
+          glbUrl: this.currentJob.glbUrl,
+        },
+        readiness: this.currentJob.stlUrl || this.currentJob.threemfUrl ? 'good' : 'attention',
+        onReset: () => {
+          this.reset();
+        },
+      });
+      panel.render();
+    }
+  }
+
+  public async startGeneration(input: GenerationInput): Promise<void> {
+    this.lastInput = input;
+    this.state = 'generating';
+    this.abortController = new AbortController();
+    this.render();
+
+    const stepContainer = this.container.querySelector<HTMLElement>('#step-container');
+    if (!stepContainer) return;
+
+    const progress = new ProgressComponent(stepContainer, {
+      onCancel: () => {
+        this.abortController?.abort();
+        this.state = 'upload';
+        this.render();
+      },
+      onRetry: () => {
+        this.startGeneration(input);
+      },
+    });
+    progress.render();
+
+    const generateFn = this.options.generator || generate3D;
+
+    try {
+      progress.updateStage('upload', 'Sending heirloom data to Lux3D...');
+
+      const result = await generateFn(input, {
+        client: this.options.client,
+        enableRetopo: true,
+        enableExport: true,
+        signal: this.abortController.signal,
+        onProgress: (stageMessage: string) => {
+          const lower = stageMessage.toLowerCase();
+          let stage: ProgressStage = 'generate';
+          if (
+            lower.includes('upload') ||
+            lower.includes('photo') ||
+            lower.includes('description')
+          ) {
+            stage = 'upload';
+          } else if (
+            lower.includes('retopo') ||
+            lower.includes('topology') ||
+            lower.includes('slicer')
+          ) {
+            stage = 'retopo';
+          } else if (lower.includes('export') || lower.includes('stl') || lower.includes('3mf')) {
+            stage = 'export';
+          } else if (lower.includes('final') || lower.includes('ready')) {
+            stage = 'complete';
+          }
+          progress.updateStage(stage, stageMessage);
+        },
+      });
+
+      this.currentJob = {
+        id: String(result.taskId),
+        status: 'succeeded',
+        sourceType: input.sourceType,
+        glbUrl: result.glbUrl,
+        retopoGlbUrl: result.retopoGlbUrl,
+        stlUrl: result.stlUrl,
+        threemfUrl: result.threemfUrl,
+        createdAt: Date.now(),
+      };
+
+      progress.updateStage('complete', 'Your model is ready.');
+
+      const delay = this.options.transitionDelayMs ?? 100;
+      if (delay > 0) {
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+
+      this.state = 'result';
+      this.render();
+    } catch (err: unknown) {
+      if (this.abortController.signal.aborted) {
+        return;
+      }
+      const message =
+        err instanceof Error
+          ? err.message
+          : '3D generation could not be completed. Please check your input or retry.';
+      progress.showError(message);
+    }
+  }
+
+  public reset(): void {
+    this.state = 'upload';
+    this.currentJob = null;
+    this.lastInput = null;
+    this.render();
+  }
+
+  public getState(): AppState {
+    return this.state;
+  }
+
+  public getCurrentJob(): Job | null {
+    return this.currentJob;
   }
 }

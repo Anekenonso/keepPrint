@@ -568,3 +568,26 @@ model-viewer {
 .reset-btn:hover {
   color: var(--primary-hover);
 }
+
+/* Result view */
+.result-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.result-header {
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.result-header h2 {
+  font-size: 1.5rem;
+  color: var(--text-color);
+  margin-bottom: 6px;
+}
+
+.result-header p {
+  color: var(--muted-text);
+  font-size: 1rem;
+}
