@@ -172,4 +172,140 @@ describe('TS-06: UploadForm Component', () => {
     expect(errorEl.textContent).toContain('at most 4 photos');
     expect(form.getImages()).toHaveLength(0);
   });
+
+  describe('T-16: Multi-Image Support (Up to 4 Photos)', () => {
+    it('supports uploading multiple photos with angle badges and count display', async () => {
+      let submittedPayload: GenerationInput | null = null;
+      const form = new UploadForm(container, {
+        initialSourceType: 'image',
+        onSubmit: (payload) => {
+          submittedPayload = payload;
+        },
+      });
+      form.render();
+
+      class MockFileReader {
+        public result: string = 'data:image/jpeg;base64,mocked';
+        public onload: (() => void) | null = null;
+        public readAsDataURL() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader);
+
+      const files = [
+        new File(['front'], 'heirloom_front.jpg', { type: 'image/jpeg' }),
+        new File(['back'], 'heirloom_back.jpg', { type: 'image/jpeg' }),
+        new File(['side'], 'heirloom_side.jpg', { type: 'image/jpeg' }),
+      ];
+
+      form.handleFiles(files);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(form.getImages()).toHaveLength(3);
+
+      const countEl = container.querySelector('.previews-count');
+      expect(countEl?.textContent).toContain('Uploaded Photos (3/4)');
+
+      const badges = container.querySelectorAll('.angle-badge');
+      expect(badges).toHaveLength(3);
+      expect(badges[0].textContent).toBe('Front / Main');
+      expect(badges[1].textContent).toBe('Back Angle');
+      expect(badges[2].textContent).toBe('Side View');
+
+      // Add more card should be visible since < 4
+      const addMore = container.querySelector('#add-more-btn');
+      expect(addMore).not.toBeNull();
+      expect(addMore?.textContent).toContain('Add Angle (4/4)');
+
+      const submitBtn = container.querySelector<HTMLButtonElement>('#submit-btn')!;
+      submitBtn.click();
+
+      expect(submittedPayload).not.toBeNull();
+      const payload = submittedPayload!;
+      expect(payload.images).toHaveLength(3);
+      expect(payload.images?.map((img) => img.name)).toEqual([
+        'heirloom_front.jpg',
+        'heirloom_back.jpg',
+        'heirloom_side.jpg',
+      ]);
+
+      vi.unstubAllGlobals();
+    });
+
+    it('hides add-more button when exactly 4 photos are uploaded', async () => {
+      const form = new UploadForm(container, { onSubmit: vi.fn() });
+      form.render();
+
+      class MockFileReader {
+        public result: string = 'data:image/jpeg;base64,mocked';
+        public onload: (() => void) | null = null;
+        public readAsDataURL() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader);
+
+      const files = Array.from(
+        { length: 4 },
+        (_, i) => new File([`img${i}`], `angle-${i + 1}.jpg`, { type: 'image/jpeg' })
+      );
+
+      form.handleFiles(files);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(form.getImages()).toHaveLength(4);
+      expect(container.querySelector('#add-more-btn')).toBeNull();
+      expect(container.querySelector('.previews-count')?.textContent).toContain(
+        'Uploaded Photos (4/4)'
+      );
+
+      vi.unstubAllGlobals();
+    });
+
+    it('re-indexes angle badges when an image in the middle is removed', async () => {
+      const form = new UploadForm(container, { onSubmit: vi.fn() });
+      form.render();
+
+      class MockFileReader {
+        public result: string = 'data:image/jpeg;base64,mocked';
+        public onload: (() => void) | null = null;
+        public readAsDataURL() {
+          setTimeout(() => {
+            if (this.onload) this.onload();
+          }, 0);
+        }
+      }
+      vi.stubGlobal('FileReader', MockFileReader);
+
+      const files = [
+        new File(['f1'], 'front.jpg', { type: 'image/jpeg' }),
+        new File(['f2'], 'back.jpg', { type: 'image/jpeg' }),
+        new File(['f3'], 'side.jpg', { type: 'image/jpeg' }),
+      ];
+
+      form.handleFiles(files);
+      await new Promise((resolve) => setTimeout(resolve, 20));
+
+      expect(form.getImages()).toHaveLength(3);
+
+      // Remove the 2nd photo ("Back Angle")
+      const removeButtons = container.querySelectorAll<HTMLButtonElement>('.remove-btn');
+      removeButtons[1].click();
+
+      expect(form.getImages()).toHaveLength(2);
+      expect(form.getImages()[0].name).toBe('front.jpg');
+      expect(form.getImages()[1].name).toBe('side.jpg');
+
+      const badges = container.querySelectorAll('.angle-badge');
+      expect(badges[0].textContent).toBe('Front / Main');
+      expect(badges[1].textContent).toBe('Back Angle'); // Now re-indexed to 2nd position
+
+      vi.unstubAllGlobals();
+    });
+  });
 });

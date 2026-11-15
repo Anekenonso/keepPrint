@@ -388,5 +388,50 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(mockClient.imgTo3d.create).not.toHaveBeenCalled();
       expect(mockClient.textTo3d.create).not.toHaveBeenCalled();
     });
+
+    it('handles multi-image input (T-16) by creating task with imgs array and updating progress', async () => {
+      const mockClient = {
+        imgTo3d: {
+          create: vi.fn().mockResolvedValue(55555),
+        },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 55555,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [
+              { content: 'https://cdn.example.com/multi.glb' },
+              { content: 'https://cdn.example.com/multi.stl' },
+              { content: 'https://cdn.example.com/multi.3mf' },
+            ],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const progressMessages: string[] = [];
+      const multiInput: GenerationInput = {
+        sourceType: 'image',
+        images: [
+          { name: 'angle1.jpg', size: 1024, type: 'image/jpeg', dataUrl: 'data:img1' },
+          { name: 'angle2.jpg', size: 1024, type: 'image/jpeg', dataUrl: 'data:img2' },
+          { name: 'angle3.jpg', size: 1024, type: 'image/jpeg', dataUrl: 'data:img3' },
+        ],
+      };
+
+      const result = await generate3D(multiInput, {
+        client: mockClient,
+        enableRetopo: false,
+        enableExport: false,
+        onProgress: (msg) => progressMessages.push(msg),
+      });
+
+      expect(result.status).toBe('succeeded');
+      expect(result.taskId).toBe(55555);
+      expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
+        imgs: ['data:img1', 'data:img2', 'data:img3'],
+        version: 'G1',
+        faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+      });
+      expect(progressMessages).toContain('Uploading 3 heirloom photos to Lux3D...');
+    });
   });
 });

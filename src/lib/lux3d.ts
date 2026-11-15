@@ -318,8 +318,9 @@ export async function generate3D(
 
   let taskId: number;
   if (input.sourceType === 'image') {
-    options?.onProgress?.('Uploading heirloom photo to Lux3D...');
     const images = input.images || [];
+    const countMsg = images.length > 1 ? `${images.length} heirloom photos` : 'heirloom photo';
+    options?.onProgress?.(`Uploading ${countMsg} to Lux3D...`);
     const imgUrls = images.map((img) => img.dataUrl || img.name);
     taskId = await createImageTo3dTask(
       imgUrls.length > 1 ? { imgs: imgUrls } : { img: imgUrls[0] },

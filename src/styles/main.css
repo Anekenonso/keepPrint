@@ -157,10 +157,34 @@ header p {
 }
 
 .image-previews {
+  margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.previews-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  padding: 0 2px;
+}
+
+.previews-count {
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+.previews-hint {
+  color: var(--muted-text);
+  font-size: 0.82rem;
+}
+
+.previews-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
   gap: 12px;
-  margin-top: 14px;
 }
 
 .preview-card {
@@ -171,8 +195,25 @@ header p {
   background: #fff;
   display: flex;
   flex-direction: column;
+  padding: 8px;
+  gap: 6px;
+}
+
+.preview-badge-row {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 6px;
+  width: 100%;
+}
+
+.angle-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--primary-color);
+  background-color: #fcf1ea;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 
 .preview-img {
@@ -185,28 +226,64 @@ header p {
 .preview-name {
   font-size: 0.75rem;
   color: var(--muted-text);
-  margin-top: 4px;
+  margin-top: 2px;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-align: center;
 }
 
 .remove-btn {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
+  transition: background 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: var(--error-color);
+}
+
+.add-more-card {
+  border: 1.5px dashed var(--border-color);
+  border-radius: 8px;
+  background-color: #fbf9f6;
+  min-height: 130px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  padding: 10px;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.add-more-card:hover {
+  border-color: var(--primary-color);
+  background-color: #fff9f5;
+}
+
+.add-more-icon {
+  font-size: 1.5rem;
+  color: var(--primary-color);
+  line-height: 1;
+}
+
+.add-more-text {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--muted-text);
 }
 
 .field-label {

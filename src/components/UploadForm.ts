@@ -104,21 +104,51 @@ export class UploadForm {
     this.attachEvents();
   }
 
+  public getAngleLabel(index: number): string {
+    const labels = ['Front / Main', 'Back Angle', 'Side View', 'Top / Detail'];
+    return labels[index] || `Angle ${index + 1}`;
+  }
+
   private renderPreviews(): string {
     if (this.images.length === 0) return '';
-    return this.images
+
+    const cardsHtml = this.images
       .map(
         (img, index) => `
         <div class="preview-card" data-index="${index}">
+          <div class="preview-badge-row">
+            <span class="angle-badge">${this.getAngleLabel(index)}</span>
+            <button type="button" class="remove-btn" data-index="${index}" aria-label="Remove image">
+              &times;
+            </button>
+          </div>
           <img src="${img.dataUrl || ''}" alt="${img.name}" class="preview-img" />
           <span class="preview-name">${img.name}</span>
-          <button type="button" class="remove-btn" data-index="${index}" aria-label="Remove image">
-            &times;
-          </button>
         </div>
       `
       )
       .join('');
+
+    const addMoreHtml =
+      this.images.length < MAX_IMAGE_COUNT
+        ? `
+        <div class="add-more-card" id="add-more-btn" role="button" tabindex="0" title="Add another angle photo">
+          <span class="add-more-icon">+</span>
+          <span class="add-more-text">Add Angle (${this.images.length + 1}/4)</span>
+        </div>
+      `
+        : '';
+
+    return `
+      <div class="previews-header">
+        <span class="previews-count">Uploaded Photos (${this.images.length}/${MAX_IMAGE_COUNT})</span>
+        <span class="previews-hint">Multi-angle photos improve 3D mesh quality</span>
+      </div>
+      <div class="previews-grid">
+        ${cardsHtml}
+        ${addMoreHtml}
+      </div>
+    `;
   }
 
   private attachEvents(): void {
@@ -196,6 +226,15 @@ export class UploadForm {
         const index = Number(btn.getAttribute('data-index'));
         this.removeImage(index);
       });
+    });
+
+    const addMoreBtn = this.container.querySelector<HTMLElement>('#add-more-btn');
+    addMoreBtn?.addEventListener('click', () => fileInput?.click());
+    addMoreBtn?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput?.click();
+      }
     });
 
     form?.addEventListener('submit', (e) => {
