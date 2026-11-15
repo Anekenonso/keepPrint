@@ -355,3 +355,67 @@ header p {
   margin-top: 12px;
   min-height: 44px;
 }
+
+/* Viewer styles */
+.viewer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+}
+
+model-viewer {
+  width: 100%;
+  height: 420px;
+  min-height: 340px;
+  background-color: #f4ede3;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-color);
+  --poster-color: transparent;
+}
+
+.viewer-controls-hint {
+  font-size: 0.8rem;
+  color: var(--muted-text);
+  margin-top: 8px;
+  text-align: center;
+}
+
+.viewer-empty,
+.viewer-fallback {
+  width: 100%;
+  height: 280px;
+  background-color: #fcf9f5;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+}
+
+.viewer-fallback {
+  border-color: #e8c8b5;
+  background-color: #fbf5ef;
+}
+
+.viewer-fallback h4 {
+  font-size: 1.15rem;
+  color: var(--text-color);
+  margin: 8px 0;
+}
+
+.viewer-fallback p,
+.viewer-empty p {
+  color: var(--muted-text);
+  max-width: 440px;
+  font-size: 0.95rem;
+}
+
+.empty-icon,
+.fallback-icon {
+  font-size: 2.5rem;
+  margin-bottom: 6px;
+}
