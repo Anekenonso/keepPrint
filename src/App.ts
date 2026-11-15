@@ -3,6 +3,7 @@ import { ProgressComponent, type ProgressStage } from './components/Progress';
 import { ViewerComponent } from './components/Viewer';
 import { DownloadPanel } from './components/DownloadPanel';
 import { generate3D, type GenerationResult } from './lib/lux3d';
+import { saveLastJob, loadLastJob, clearLastJob, hasLastJob } from './lib/storage';
 import type { GenerationInput, Job } from './lib/types';
 import type { Lux3dClient } from '@manycore/aholo-sdk-lux3d';
 
@@ -12,6 +13,8 @@ export interface AppOptions {
   client?: Lux3dClient;
   transitionDelayMs?: number;
   checkWebGL?: () => boolean;
+  storage?: Storage;
+  autoRestoreLastJob?: boolean;
   generator?: (
     input: GenerationInput,
     options?: {
@@ -35,6 +38,14 @@ export class App {
   constructor(container: HTMLElement, options?: AppOptions) {
     this.container = container;
     this.options = options || {};
+
+    if (this.options.autoRestoreLastJob) {
+      const restored = loadLastJob({ storage: this.options.storage });
+      if (restored && (restored.stlUrl || restored.threemfUrl || restored.glbUrl)) {
+        this.currentJob = restored;
+        this.state = 'result';
+      }
+    }
   }
 
   public render(): void {
@@ -61,7 +72,52 @@ export class App {
   }
 
   private renderUpload(parent: HTMLElement): void {
-    const uploadForm = new UploadForm(parent, {
+    const hasSaved = hasLastJob({ storage: this.options.storage });
+    let bannerHtml = '';
+    if (hasSaved) {
+      bannerHtml = `
+        <div class="restore-job-banner" id="restore-banner">
+          <div class="restore-info">
+            <span class="restore-icon">✨</span>
+            <span>A previously generated heirloom model is available.</span>
+          </div>
+          <div class="restore-actions">
+            <button type="button" class="btn-restore" id="restore-job-btn">View Previous Model</button>
+            <button type="button" class="btn-text-subtle" id="dismiss-job-btn" title="Dismiss">✕</button>
+          </div>
+        </div>
+      `;
+    }
+
+    parent.innerHTML = `
+      ${bannerHtml}
+      <div id="upload-form-mount"></div>
+    `;
+
+    if (hasSaved) {
+      const restoreBtn = parent.querySelector<HTMLButtonElement>('#restore-job-btn');
+      const dismissBtn = parent.querySelector<HTMLButtonElement>('#dismiss-job-btn');
+      const banner = parent.querySelector<HTMLElement>('#restore-banner');
+
+      restoreBtn?.addEventListener('click', () => {
+        const job = loadLastJob({ storage: this.options.storage });
+        if (job) {
+          this.currentJob = job;
+          this.state = 'result';
+          this.render();
+        }
+      });
+
+      dismissBtn?.addEventListener('click', () => {
+        clearLastJob({ storage: this.options.storage });
+        banner?.remove();
+      });
+    }
+
+    const formMount = parent.querySelector<HTMLElement>('#upload-form-mount');
+    if (!formMount) return;
+
+    const uploadForm = new UploadForm(formMount, {
       onSubmit: (payload) => {
         this.startGeneration(payload);
       },
@@ -195,6 +251,8 @@ export class App {
         threemfUrl: result.threemfUrl,
         createdAt: Date.now(),
       };
+
+      saveLastJob(this.currentJob, { storage: this.options.storage });
 
       progress.updateStage('complete', 'Your model is ready.');
 
