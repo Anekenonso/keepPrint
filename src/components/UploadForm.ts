@@ -1,0 +1,294 @@
+import type { GenerationInput, ImageInputItem, SourceType } from '../lib/types';
+import { validateImageFile, validateGenerationInput, MAX_IMAGE_COUNT } from '../lib/validation';
+
+export interface UploadFormOptions {
+  onSubmit: (payload: GenerationInput) => void;
+  initialSourceType?: SourceType;
+}
+
+export class UploadForm {
+  private container: HTMLElement;
+  private options: UploadFormOptions;
+  private sourceType: SourceType;
+  private images: ImageInputItem[] = [];
+  private promptText: string = '';
+  private errorMessage: string | null = null;
+
+  constructor(container: HTMLElement, options: UploadFormOptions) {
+    this.container = container;
+    this.options = options;
+    this.sourceType = options.initialSourceType || 'image';
+  }
+
+  public render(): void {
+    this.container.innerHTML = `
+      <form class="upload-form" id="heirloom-form">
+        <div class="mode-tabs" role="tablist">
+          <button
+            type="button"
+            class="tab-btn ${this.sourceType === 'image' ? 'active' : ''}"
+            id="tab-image"
+            role="tab"
+            aria-selected="${this.sourceType === 'image'}"
+          >
+            Upload Photo(s)
+          </button>
+          <button
+            type="button"
+            class="tab-btn ${this.sourceType === 'text' ? 'active' : ''}"
+            id="tab-text"
+            role="tab"
+            aria-selected="${this.sourceType === 'text'}"
+          >
+            Describe Heirloom
+          </button>
+        </div>
+
+        <div class="tab-content" id="image-panel" style="${
+          this.sourceType === 'image' ? 'display: block;' : 'display: none;'
+        }">
+          <div
+            class="drop-zone"
+            id="drop-zone"
+            tabindex="0"
+            role="button"
+            aria-label="Upload heirloom photos"
+          >
+            <div class="drop-zone-icon">📷</div>
+            <p class="drop-zone-prompt"><strong>Click or drag 1–4 photos here</strong></p>
+            <p class="drop-zone-hint">Clear, well-lit photos work best (JPEG, PNG, WebP up to 10MB each)</p>
+            <input
+              type="file"
+              id="file-input"
+              accept="image/jpeg,image/png,image/webp"
+              multiple
+              style="display: none;"
+            />
+          </div>
+
+          <div class="image-previews" id="image-previews">
+            ${this.renderPreviews()}
+          </div>
+        </div>
+
+        <div class="tab-content" id="text-panel" style="${
+          this.sourceType === 'text' ? 'display: block;' : 'display: none;'
+        }">
+          <label for="prompt-input" class="field-label">
+            Describe your heirloom in detail:
+          </label>
+          <textarea
+            id="prompt-input"
+            class="prompt-textarea"
+            rows="4"
+            placeholder="e.g. 19th-century hand-carved mahogany jewelry box with curved lid, brass latch, and floral relief on all sides..."
+          >${this.promptText}</textarea>
+          <p class="field-hint">Include details about shape, ornaments, dimensions, and materials.</p>
+        </div>
+
+        <div
+          class="form-error"
+          id="form-error"
+          role="alert"
+          style="${this.errorMessage ? 'display: block;' : 'display: none;'}"
+        >
+          ${this.errorMessage || ''}
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn">
+          Generate 3D Model
+        </button>
+      </form>
+    `;
+
+    this.attachEvents();
+  }
+
+  private renderPreviews(): string {
+    if (this.images.length === 0) return '';
+    return this.images
+      .map(
+        (img, index) => `
+        <div class="preview-card" data-index="${index}">
+          <img src="${img.dataUrl || ''}" alt="${img.name}" class="preview-img" />
+          <span class="preview-name">${img.name}</span>
+          <button type="button" class="remove-btn" data-index="${index}" aria-label="Remove image">
+            &times;
+          </button>
+        </div>
+      `
+      )
+      .join('');
+  }
+
+  private attachEvents(): void {
+    const tabImage = this.container.querySelector<HTMLButtonElement>('#tab-image');
+    const tabText = this.container.querySelector<HTMLButtonElement>('#tab-text');
+    const imagePanel = this.container.querySelector<HTMLElement>('#image-panel');
+    const textPanel = this.container.querySelector<HTMLElement>('#text-panel');
+    const dropZone = this.container.querySelector<HTMLElement>('#drop-zone');
+    const fileInput = this.container.querySelector<HTMLInputElement>('#file-input');
+    const promptInput = this.container.querySelector<HTMLTextAreaElement>('#prompt-input');
+    const form = this.container.querySelector<HTMLFormElement>('#heirloom-form');
+
+    tabImage?.addEventListener('click', () => {
+      this.sourceType = 'image';
+      tabImage.classList.add('active');
+      tabImage.setAttribute('aria-selected', 'true');
+      tabText?.classList.remove('active');
+      tabText?.setAttribute('aria-selected', 'false');
+      if (imagePanel) imagePanel.style.display = 'block';
+      if (textPanel) textPanel.style.display = 'none';
+      this.clearError();
+    });
+
+    tabText?.addEventListener('click', () => {
+      this.sourceType = 'text';
+      tabText.classList.add('active');
+      tabText.setAttribute('aria-selected', 'true');
+      tabImage?.classList.remove('active');
+      tabImage?.setAttribute('aria-selected', 'false');
+      if (textPanel) textPanel.style.display = 'block';
+      if (imagePanel) imagePanel.style.display = 'none';
+      this.clearError();
+    });
+
+    dropZone?.addEventListener('click', () => fileInput?.click());
+    dropZone?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput?.click();
+      }
+    });
+
+    dropZone?.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      dropZone.classList.add('drag-over');
+    });
+
+    dropZone?.addEventListener('dragleave', () => {
+      dropZone.classList.remove('drag-over');
+    });
+
+    dropZone?.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('drag-over');
+      if (e.dataTransfer?.files) {
+        this.handleFiles(Array.from(e.dataTransfer.files));
+      }
+    });
+
+    fileInput?.addEventListener('change', () => {
+      if (fileInput.files) {
+        this.handleFiles(Array.from(fileInput.files));
+        fileInput.value = '';
+      }
+    });
+
+    promptInput?.addEventListener('input', () => {
+      this.promptText = promptInput.value;
+      this.clearError();
+    });
+
+    this.container.querySelectorAll<HTMLButtonElement>('.remove-btn').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const index = Number(btn.getAttribute('data-index'));
+        this.removeImage(index);
+      });
+    });
+
+    form?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.handleSubmit();
+    });
+  }
+
+  public handleFiles(files: File[]): void {
+    if (this.images.length + files.length > MAX_IMAGE_COUNT) {
+      this.showError(`You can upload at most ${MAX_IMAGE_COUNT} photos.`);
+      return;
+    }
+
+    for (const file of files) {
+      const validation = validateImageFile(file);
+      if (!validation.success) {
+        this.showError(validation.error);
+        return;
+      }
+    }
+
+    const readPromises = files.map(
+      (file) =>
+        new Promise<ImageInputItem>((resolve) => {
+          const reader = new FileReader();
+          reader.onload = () => {
+            resolve({
+              name: file.name,
+              size: file.size,
+              type: file.type,
+              dataUrl: reader.result as string,
+              file,
+            });
+          };
+          reader.readAsDataURL(file);
+        })
+    );
+
+    Promise.all(readPromises).then((newItems) => {
+      this.images.push(...newItems);
+      this.clearError();
+      this.render();
+    });
+  }
+
+  public removeImage(index: number): void {
+    if (index >= 0 && index < this.images.length) {
+      this.images.splice(index, 1);
+      this.render();
+    }
+  }
+
+  public handleSubmit(): void {
+    const payload: GenerationInput = {
+      sourceType: this.sourceType,
+      prompt: this.promptText.trim() || undefined,
+      images: this.images.length > 0 ? this.images : undefined,
+    };
+
+    const validation = validateGenerationInput(payload);
+    if (!validation.success) {
+      this.showError(validation.errors[0] || 'Please provide valid heirloom input.');
+      return;
+    }
+
+    this.clearError();
+    this.options.onSubmit(payload);
+  }
+
+  public showError(msg: string): void {
+    this.errorMessage = msg;
+    const errorEl = this.container.querySelector<HTMLElement>('#form-error');
+    if (errorEl) {
+      errorEl.textContent = msg;
+      errorEl.style.display = 'block';
+    }
+  }
+
+  public clearError(): void {
+    this.errorMessage = null;
+    const errorEl = this.container.querySelector<HTMLElement>('#form-error');
+    if (errorEl) {
+      errorEl.textContent = '';
+      errorEl.style.display = 'none';
+    }
+  }
+
+  public getImages(): ImageInputItem[] {
+    return [...this.images];
+  }
+
+  public getPrompt(): string {
+    return this.promptText;
+  }
+}
