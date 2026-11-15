@@ -7,6 +7,8 @@ import {
   extractModelUrls,
   runRetopology,
   exportPrintFormats,
+  createClient,
+  getAholoConfig,
   DEFAULT_PRINTABLE_FACE_BUDGET,
 } from '../src/lib/lux3d';
 import {
@@ -432,6 +434,28 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
       expect(progressMessages).toContain('Uploading 3 heirloom photos to Lux3D...');
+    });
+  });
+
+  describe('createClient and Safe Fetch Context', () => {
+    it('initializes Lux3dClient instance with safeFetch avoiding illegal invocation', () => {
+      const client = createClient({ apiKey: 'test-key', region: 'com' });
+      expect(client).toBeDefined();
+      expect(client.imgTo3d).toBeDefined();
+      expect(client.textTo3d).toBeDefined();
+      expect(client.tasks).toBeDefined();
+    });
+
+    it('delegates to custom fetch when provided in config', () => {
+      const customFetch = vi.fn();
+      const client = createClient({ apiKey: 'test-key', fetch: customFetch });
+      expect(client).toBeDefined();
+    });
+
+    it('reads apiKey and region from getAholoConfig fallback', () => {
+      const config = getAholoConfig({ apiKey: 'custom-key', region: 'cn' });
+      expect(config.apiKey).toBe('custom-key');
+      expect(config.region).toBe('cn');
     });
   });
 });

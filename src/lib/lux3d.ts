@@ -35,6 +35,7 @@ export interface MultiFormatExportResult {
 export interface Lux3dConfig {
   apiKey?: string;
   region?: 'cn' | 'com';
+  fetch?: typeof fetch;
 }
 
 export interface GenerationResult {
@@ -79,9 +80,23 @@ export function getAholoConfig(overrides?: Lux3dConfig): { apiKey: string; regio
 
 export function createClient(config?: Lux3dConfig): Lux3dClient {
   const { apiKey, region } = getAholoConfig(config);
+
+  // In browsers, calling an unbound reference to window.fetch as a method on
+  // BaseHttpClient throws "TypeError: Failed to execute 'fetch' on 'Window': Illegal invocation".
+  // Binding fetch directly to window ensures the browser's execution context is preserved.
+  const safeFetch: typeof fetch =
+    config?.fetch ||
+    ((input: RequestInfo | URL, init?: RequestInit) => {
+      if (typeof window !== 'undefined' && typeof window.fetch === 'function') {
+        return window.fetch(input, init);
+      }
+      return globalThis.fetch(input, init);
+    });
+
   return createLux3dClient({
     apiKey,
     region,
+    fetch: safeFetch,
   });
 }
 
