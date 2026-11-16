@@ -86,7 +86,7 @@ export class ProgressComponent {
           </div>
           <div class="progress-hint">
             <span class="hint-icon">ℹ️</span>
-            <span>Synthesizing a watertight 3D heirloom mesh from multi-angle photos involves deep volumetric reconstruction on Aholo's cloud GPUs. This typically takes <strong>3–7 minutes</strong>. Please keep this tab active.</span>
+            <span>Synthesizing a watertight 3D heirloom mesh from multi-angle photos involves deep volumetric reconstruction on Aholo's cloud GPUs. This typically takes <strong>6–12 minutes</strong> depending on model complexity and queue depth. Please keep this tab active.</span>
           </div>
         `
             : `

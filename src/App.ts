@@ -235,7 +235,9 @@ export class App {
         client: this.options.client,
         enableRetopo: true,
         enableExport: true,
-        signal: this.abortController.signal,
+        pollOptions: {
+          signal: this.abortController.signal,
+        },
         onProgress: (stageMessage: string) => {
           const lower = stageMessage.toLowerCase();
           let stage: ProgressStage = 'generate';
