@@ -86,8 +86,14 @@ export function resolveClientBaseUrl(region: 'com' | 'cn', customBaseUrl?: strin
   // In browser environments, route requests through the local/edge reverse proxy
   // (/api/aholo-global or /api/aholo-cn) to prevent CORS errors, as Aholo's API
   // gateway omits Access-Control-Allow-Origin headers on POST responses.
-  if (typeof window !== 'undefined' && window.location && window.location.origin) {
-    return region === 'cn' ? '/api/aholo-cn' : '/api/aholo-global';
+  if (
+    typeof window !== 'undefined' &&
+    window.location &&
+    window.location.origin &&
+    window.location.origin !== 'null'
+  ) {
+    const origin = window.location.origin.replace(/\/$/, '');
+    return region === 'cn' ? `${origin}/api/aholo-cn` : `${origin}/api/aholo-global`;
   }
   return region === 'cn' ? 'https://api.aholo.cn' : 'https://api.aholo.ai';
 }

@@ -461,11 +461,12 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
 
     it('resolves reverse proxy baseUrl in browser environment to avoid CORS', () => {
       // In JSDOM, window and window.location are defined
+      const origin = window.location.origin.replace(/\/$/, '');
       const globalUrl = resolveClientBaseUrl('com');
-      expect(globalUrl).toBe('/api/aholo-global');
+      expect(globalUrl).toBe(`${origin}/api/aholo-global`);
 
       const cnUrl = resolveClientBaseUrl('cn');
-      expect(cnUrl).toBe('/api/aholo-cn');
+      expect(cnUrl).toBe(`${origin}/api/aholo-cn`);
 
       const custom = resolveClientBaseUrl('com', 'https://custom.api.com/');
       expect(custom).toBe('https://custom.api.com');
