@@ -38,6 +38,7 @@ export class App {
   private lastInput: GenerationInput | null = null;
   private abortController: AbortController | null = null;
   private activeExampleTitle: string | null = null;
+  private activeExample: PreloadedExample | null = null;
 
   constructor(container: HTMLElement, options?: AppOptions) {
     this.container = container;
@@ -110,8 +111,14 @@ export class App {
 
     parent.innerHTML = `
       ${bannerHtml}
-      <div id="examples-mount"></div>
-      <div id="upload-form-mount"></div>
+      <div class="workspace-split">
+        <div class="workspace-main">
+          <div id="upload-form-mount"></div>
+        </div>
+        <aside class="workspace-side" aria-label="Sample Heirloom Artifacts for Testing">
+          <div id="examples-mount"></div>
+        </aside>
+      </div>
     `;
 
     if (hasSaved) {
@@ -149,18 +156,26 @@ export class App {
 
     if (examplesMount && uploadForm) {
       const examplesComponent = new JudgeExamples(examplesMount, {
-        onSelectPreview: (example) => {
-          this.loadExample(example);
+        onWalkthrough: (example) => {
+          this.activeExample = example;
+          this.activeExampleTitle = example.title;
+          uploadForm?.setImages(example.imageInputs);
+          this.startGeneration({
+            sourceType: 'image',
+            images: example.imageInputs,
+          });
         },
-        onLoadInput: (example, mode) => {
+        onLoadInput: (example, mode = 'image') => {
+          this.activeExample = example;
+          this.activeExampleTitle = example.title;
           if (mode === 'image') {
             uploadForm?.setImages(example.imageInputs);
           } else {
             uploadForm?.setPrompt(example.prompt);
           }
-          const target = formMount || examplesMount;
-          if (target && typeof target.scrollIntoView === 'function') {
-            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          const formEl = parent.querySelector('#upload-form-mount');
+          if (formEl && typeof formEl.scrollIntoView === 'function') {
+            formEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
           }
         },
       });
@@ -281,6 +296,22 @@ export class App {
 
     const generateFn = this.options.generator || generate3D;
 
+    if (this.activeExample) {
+      const isExampleImage =
+        input.images &&
+        input.images.length > 0 &&
+        input.images[0].name === this.activeExample.imageInputs[0]?.name;
+      const isExamplePrompt =
+        input.prompt && input.prompt.trim() === this.activeExample.prompt.trim();
+
+      if (isExampleImage || isExamplePrompt) {
+        await this.runGuidedWalkthrough(this.activeExample, progress);
+        return;
+      } else {
+        this.activeExample = null;
+      }
+    }
+
     try {
       progress.updateStage('upload', 'Sending heirloom data to Lux3D...');
 
@@ -349,6 +380,69 @@ export class App {
     }
   }
 
+  private async runGuidedWalkthrough(
+    example: PreloadedExample,
+    progress: ProgressComponent
+  ): Promise<void> {
+    const isFast = this.options.transitionDelayMs === 0;
+    const stepDelay = isFast ? 1 : 1200;
+
+    const sleep = (ms: number) =>
+      new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => resolve(), ms);
+        this.abortController?.signal.addEventListener(
+          'abort',
+          () => {
+            clearTimeout(timer);
+            reject(new Error('Generation cancelled by user'));
+          },
+          { once: true }
+        );
+      });
+
+    try {
+      progress.updateStage('upload', 'Analyzing heirloom artifact angles and photos...');
+      await sleep(stepDelay);
+
+      progress.updateStage(
+        'generate',
+        `Synthesizing watertight 3D geometry for ${example.title}...`
+      );
+      await sleep(stepDelay + (isFast ? 0 : 400));
+
+      progress.updateStage(
+        'retopo',
+        'Running manifold mesh retopology and wall thickness checks...'
+      );
+      await sleep(stepDelay);
+
+      progress.updateStage(
+        'export',
+        'Exporting 3D heirloom mesh, watertight STL & Bambu-ready 3MF...'
+      );
+      await sleep(stepDelay);
+
+      this.currentJob = { ...example.result };
+      this.activeExampleTitle = example.title;
+      saveLastJob(this.currentJob, { storage: this.options.storage });
+
+      progress.updateStage('complete', 'Heirloom 3D model synthesized successfully!');
+      const delay = this.options.transitionDelayMs ?? 300;
+      if (delay > 0) {
+        await sleep(delay);
+      }
+
+      this.state = 'result';
+      this.render();
+    } catch (err: unknown) {
+      if (this.abortController?.signal.aborted) {
+        return;
+      }
+      const message = err instanceof Error ? err.message : 'Demo generation stopped.';
+      progress.showError(message);
+    }
+  }
+
   public loadExample(example: PreloadedExample): void {
     this.currentJob = { ...example.result };
     this.activeExampleTitle = example.title;
@@ -362,6 +456,7 @@ export class App {
     this.currentJob = null;
     this.lastInput = null;
     this.activeExampleTitle = null;
+    this.activeExample = null;
     this.render();
   }
 

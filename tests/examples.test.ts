@@ -53,49 +53,49 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
 
   describe('JudgeExamples Component', () => {
     it('renders both example items with title and action buttons', () => {
-      const onSelectPreview = vi.fn();
+      const onWalkthrough = vi.fn();
       const onLoadInput = vi.fn();
 
       const component = new JudgeExamples(container, {
-        onSelectPreview,
+        onWalkthrough,
         onLoadInput,
       });
       component.render();
 
-      const items = container.querySelectorAll('.example-strip-item, .example-card');
+      const items = container.querySelectorAll('.sidebar-example-item');
       expect(items).toHaveLength(2);
 
       expect(container.textContent).toContain('Benin Ivory Mask of Queen Idia');
       expect(container.textContent).toContain('Nok Terracotta Seated Figure');
-      expect(container.textContent).toContain('Instant 3D Preview');
+      expect(container.textContent).toContain('Run Guided 3D Flow');
     });
 
-    it('triggers onSelectPreview when clicking Instant 3D Preview', () => {
-      const onSelectPreview = vi.fn();
+    it('triggers onWalkthrough when clicking Run Guided 3D Flow', () => {
+      const onWalkthrough = vi.fn();
       const onLoadInput = vi.fn();
 
       const component = new JudgeExamples(container, {
-        onSelectPreview,
+        onWalkthrough,
         onLoadInput,
       });
       component.render();
 
-      const previewBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="preview"][data-id="benin-ivory-mask"]'
+      const walkthroughBtn = container.querySelector<HTMLButtonElement>(
+        'button[data-action="walkthrough"][data-id="benin-ivory-mask"]'
       );
-      expect(previewBtn).not.toBeNull();
-      previewBtn?.click();
+      expect(walkthroughBtn).not.toBeNull();
+      walkthroughBtn?.click();
 
-      expect(onSelectPreview).toHaveBeenCalledTimes(1);
-      expect(onSelectPreview.mock.calls[0][0].id).toBe('benin-ivory-mask');
+      expect(onWalkthrough).toHaveBeenCalledTimes(1);
+      expect(onWalkthrough.mock.calls[0][0].id).toBe('benin-ivory-mask');
     });
 
     it('triggers onLoadInput with image mode when clicking Load Photo', () => {
-      const onSelectPreview = vi.fn();
+      const onWalkthrough = vi.fn();
       const onLoadInput = vi.fn();
 
       const component = new JudgeExamples(container, {
-        onSelectPreview,
+        onWalkthrough,
         onLoadInput,
       });
       component.render();
@@ -112,11 +112,11 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
     });
 
     it('triggers onLoadInput with text mode when clicking Load Prompt', () => {
-      const onSelectPreview = vi.fn();
+      const onWalkthrough = vi.fn();
       const onLoadInput = vi.fn();
 
       const component = new JudgeExamples(container, {
-        onSelectPreview,
+        onWalkthrough,
         onLoadInput,
       });
       component.render();
@@ -134,29 +134,32 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
   });
 
   describe('End-to-End Judge Flow in App', () => {
-    it('allows judges to instantly preview Benin ivory mask and download STL/3MF without waiting', () => {
+    it('allows judges to experience guided 3D flow for Benin ivory mask and download STL/3MF', async () => {
       const app = new App(container, {
         checkWebGL: () => true,
+        transitionDelayMs: 0,
       });
       app.render();
 
       expect(app.getState()).toBe('upload');
 
-      // Click Instant 3D Preview for Benin ivory mask
-      const beninPreviewBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="preview"][data-id="benin-ivory-mask"]'
+      // Click Run Guided 3D Flow for Benin ivory mask
+      const beninWalkthroughBtn = container.querySelector<HTMLButtonElement>(
+        'button[data-action="walkthrough"][data-id="benin-ivory-mask"]'
       );
-      expect(beninPreviewBtn).not.toBeNull();
-      beninPreviewBtn?.click();
+      expect(beninWalkthroughBtn).not.toBeNull();
+      beninWalkthroughBtn?.click();
 
-      // App should transition immediately to result state
-      expect(app.getState()).toBe('result');
+      // App should transition through progress to result state
+      await vi.waitFor(() => {
+        expect(app.getState()).toBe('result');
+      });
 
-      // Model viewer should show the real Aholo-generated GLB
+      // Model viewer should show the real Aholo-generated GLB for Benin Ivory Mask
       const viewer = container.querySelector('model-viewer');
       expect(viewer).not.toBeNull();
       expect(viewer?.getAttribute('src')).toContain(
-        '31d7f2d14d16446ebb80545720abdf22/textured.glb'
+        '24dcf9a49f5149c8928040eb476adaf3/textured.glb'
       );
 
       // Downloads should be ready for STL and 3MF
@@ -174,6 +177,23 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       const backBtn = container.querySelector<HTMLButtonElement>('#back-to-examples-btn');
       backBtn?.click();
       expect(app.getState()).toBe('upload');
+    });
+
+    it('loads sample photo into upload form when clicking Load Photo into Form', () => {
+      const app = new App(container, {
+        checkWebGL: () => true,
+      });
+      app.render();
+
+      const loadPhotoBtn = container.querySelector<HTMLButtonElement>(
+        'button[data-action="load-image"][data-id="benin-ivory-mask"]'
+      );
+      expect(loadPhotoBtn).not.toBeNull();
+      loadPhotoBtn?.click();
+
+      const previewImgs = container.querySelectorAll<HTMLImageElement>('.preview-img');
+      expect(previewImgs.length).toBeGreaterThan(0);
+      expect(previewImgs[0].src).toContain('benin-ivory-mask.jpg');
     });
 
     it('loads sample prompt into upload form when clicking Load Prompt', () => {

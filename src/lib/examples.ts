@@ -43,22 +43,22 @@ export const PRELOADED_EXAMPLES: PreloadedExample[] = [
       },
     ],
     result: {
-      id: '8029847',
+      id: '8031001',
       status: 'succeeded',
       sourceType: 'image',
       glbUrl:
-        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/31d7f2d14d16446ebb80545720abdf22/textured.glb',
+        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/24dcf9a49f5149c8928040eb476adaf3/textured.glb',
       retopoGlbUrl:
-        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/31d7f2d14d16446ebb80545720abdf22/textured.glb',
+        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/24dcf9a49f5149c8928040eb476adaf3/textured.glb',
       stlUrl:
-        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5FADYKTJDWYAABAAAAAAI8/printable.stl',
+        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5ENDYKTLE3GAABAAAAAEI8/printable.stl',
       threemfUrl:
-        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5FADYKTJDWYAABAAAAAAI8/printable.3mf',
-      createdAt: 1794788258000,
+        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5ENDYKTLE3GAABAAAAAEI8/printable.3mf',
+      createdAt: 1794792500000,
     },
     meta: {
-      aholoTaskId: 8029847,
-      exportTaskId: 8030283,
+      aholoTaskId: 8031001,
+      exportTaskId: 8031341,
       faceBudget: 80000,
       reconstructedAt: '2026-11-16 (Aholo G1 Neural Volumetric Mesh)',
     },
@@ -85,22 +85,22 @@ export const PRELOADED_EXAMPLES: PreloadedExample[] = [
       },
     ],
     result: {
-      id: '8030052',
+      id: '8031007',
       status: 'succeeded',
       sourceType: 'image',
       glbUrl:
-        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/5971395c3c964ad084bb9ff4fd631b35/textured.glb',
+        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/3404033ad6c149108571a6f19a46b5c2/textured.glb',
       retopoGlbUrl:
-        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/5971395c3c964ad084bb9ff4fd631b35/textured.glb',
+        'https://qhsmodel.kujiale.com/lux3dPbrEmbedResult/3404033ad6c149108571a6f19a46b5c2/textured.glb',
       stlUrl:
-        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5D5NIKTJRBGAABAAAAACY8/printable.stl',
+        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5FRPQKTKYXAAABAAAAABY8/printable.stl',
       threemfUrl:
-        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5D5NIKTJRBGAABAAAAACY8/printable.3mf',
-      createdAt: 1794789143000,
+        'https://qhsmodel.kujiale.com/glbMultiExportResult/NL5FRPQKTKYXAAABAAAAABY8/printable.3mf',
+      createdAt: 1794792600000,
     },
     meta: {
-      aholoTaskId: 8030052,
-      exportTaskId: 8030163,
+      aholoTaskId: 8031007,
+      exportTaskId: 8031498,
       faceBudget: 80000,
       reconstructedAt: '2026-11-16 (Aholo G1 Neural Volumetric Mesh)',
     },
