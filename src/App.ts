@@ -65,17 +65,39 @@ export class App {
             <p>Keep the original safe. Print a copy you can hold.</p>
           </div>
           <button type="button" class="btn-guide-header" id="header-guide-btn" title="View 3D Printing & Slicing Guide">
-            <span class="guide-icon">📖</span> Print Guide
+            <svg class="btn-svg-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1-2.5-2.5Z"/><path d="M6 6h10"/><path d="M6 10h10"/></svg>
+            <span>Print Guide</span>
           </button>
         </div>
       </header>
       <main class="card" id="main-content" role="main">
         <div id="step-container"></div>
       </main>
+      <footer class="app-footer" role="contentinfo">
+        <div class="footer-inner">
+          <div class="footer-left">
+            <span class="footer-brand-name">Keepprint</span>
+            <span class="footer-sep">/</span>
+            <span class="footer-engine">Aholo Lux3D G1</span>
+          </div>
+          <nav class="footer-nav" aria-label="Footer Navigation">
+            <button type="button" class="footer-link-btn" id="footer-guide-btn">
+              Print &amp; Slicer Guide
+            </button>
+            <span class="footer-sep">•</span>
+            <span class="footer-privacy-tag">Zero Training Retention</span>
+          </nav>
+        </div>
+      </footer>
     `;
 
     const headerGuideBtn = this.container.querySelector<HTMLButtonElement>('#header-guide-btn');
     headerGuideBtn?.addEventListener('click', () => {
+      this.openPrintGuide();
+    });
+
+    const footerGuideBtn = this.container.querySelector<HTMLButtonElement>('#footer-guide-btn');
+    footerGuideBtn?.addEventListener('click', () => {
       this.openPrintGuide();
     });
 
@@ -98,12 +120,12 @@ export class App {
       bannerHtml = `
         <div class="restore-job-banner" id="restore-banner">
           <div class="restore-info">
-            <span class="restore-icon">✨</span>
+            <span class="restore-tag">Saved Job</span>
             <span>A previously generated heirloom model is available.</span>
           </div>
           <div class="restore-actions">
             <button type="button" class="btn-restore" id="restore-job-btn">View Previous Model</button>
-            <button type="button" class="btn-text-subtle" id="dismiss-job-btn" title="Dismiss">✕</button>
+            <button type="button" class="btn-text-subtle" id="dismiss-job-btn" title="Dismiss" aria-label="Dismiss">✕</button>
           </div>
         </div>
       `;
@@ -214,9 +236,9 @@ export class App {
       exampleBannerHtml = `
         <div class="example-result-banner" id="example-result-banner" role="status">
           <div class="example-result-info">
-            <span class="example-result-badge">⚖️ Judge & Demo Sample</span>
+            <span class="example-result-badge">Specimen Sample</span>
             <span class="example-result-title"><strong>${matchingExample.title}</strong></span>
-            <span class="example-result-meta">• Generated with Aholo Lux3D G1 (Task #${matchingExample.meta.aholoTaskId})</span>
+            <span class="example-result-meta">Aholo Lux3D G1 (Task #${matchingExample.meta.aholoTaskId})</span>
           </div>
           <button type="button" class="btn-text-subtle" id="back-to-examples-btn" title="Back to Examples and Generator">
             ← Try Another Heirloom

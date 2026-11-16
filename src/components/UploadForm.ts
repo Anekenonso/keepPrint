@@ -44,9 +44,8 @@ export class UploadForm {
           </button>
         </div>
 
-        <div class="tab-content" id="image-panel" style="${
-          this.sourceType === 'image' ? 'display: block;' : 'display: none;'
-        }">
+        <div class="tab-content" id="image-panel" style="${this.sourceType === 'image' ? 'display: block;' : 'display: none;'
+      }">
           <div
             class="drop-zone"
             id="drop-zone"
@@ -54,7 +53,9 @@ export class UploadForm {
             role="button"
             aria-label="Upload heirloom photos"
           >
-            <div class="drop-zone-icon">📷</div>
+            <div class="drop-zone-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            </div>
             <p class="drop-zone-prompt"><strong>Click or drag 1–4 photos here</strong></p>
             <p class="drop-zone-hint">Clear, well-lit photos work best (JPEG, PNG, WebP up to 10MB each)</p>
             <input
@@ -71,9 +72,8 @@ export class UploadForm {
           </div>
         </div>
 
-        <div class="tab-content" id="text-panel" style="${
-          this.sourceType === 'text' ? 'display: block;' : 'display: none;'
-        }">
+        <div class="tab-content" id="text-panel" style="${this.sourceType === 'text' ? 'display: block;' : 'display: none;'
+      }">
           <label for="prompt-input" class="field-label">
             Describe your heirloom in detail:
           </label>

@@ -47,65 +47,62 @@ export class ProgressComponent {
           <p class="progress-message" id="progress-message">
             ${isError ? this.errorMessage : this.currentMessage}
           </p>
-          ${
-            !isError && this.currentStage !== 'complete'
-              ? `
+          ${!isError && this.currentStage !== 'complete'
+        ? `
             <div class="progress-timer" id="progress-timer">
               <span class="timer-dot"></span>
               <span>Elapsed: <strong id="timer-text">${this.formatElapsed()}</strong></span>
             </div>
           `
-              : ''
-          }
+        : ''
+      }
         </div>
 
-        ${
-          !isError
-            ? `
+        ${!isError
+        ? `
           <div class="progress-bar-container">
             <div class="progress-bar-fill" style="width: ${progressPercent}%;"></div>
           </div>
           <div class="progress-steps-list">
             ${PROGRESS_STEPS.map((step, idx) => {
-              const isPast = stageIndex > idx || this.currentStage === 'complete';
-              const isCurrent = stageIndex === idx && this.currentStage !== 'complete';
-              const stateClass = isPast
-                ? 'step-completed'
-                : isCurrent
-                  ? 'step-active'
-                  : 'step-pending';
-              const icon = isPast ? '✓' : isCurrent ? '●' : '○';
+          const isPast = stageIndex > idx || this.currentStage === 'complete';
+          const isCurrent = stageIndex === idx && this.currentStage !== 'complete';
+          const stateClass = isPast
+            ? 'step-completed'
+            : isCurrent
+              ? 'step-active'
+              : 'step-pending';
+          const icon = isPast ? '✓' : isCurrent ? '●' : '○';
 
-              return `
+          return `
                 <div class="step-item ${stateClass}" data-step="${step.id}">
                   <span class="step-icon">${icon}</span>
                   <span class="step-label">${step.label}</span>
                 </div>
               `;
-            }).join('')}
+        }).join('')}
           </div>
           <div class="progress-hint">
-            <span class="hint-icon">ℹ️</span>
+            <span class="hint-tag">Note</span>
             <span>Synthesizing a watertight 3D heirloom mesh from multi-angle photos involves deep volumetric reconstruction on Aholo's cloud GPUs. This typically takes <strong>6–12 minutes</strong> depending on model complexity and queue depth. Please keep this tab active.</span>
           </div>
         `
-            : `
+        : `
           <div class="error-action-container">
             <p class="error-help">Please verify your input or check network connectivity.</p>
             <button type="button" class="retry-btn" id="retry-btn">Try Again</button>
           </div>
         `
-        }
+      }
 
-        ${
-          !isError && this.options.onCancel
-            ? `
+        ${!isError && this.options.onCancel
+        ? `
           <div class="cancel-container">
             <button type="button" class="cancel-btn" id="cancel-btn">Cancel Generation</button>
           </div>
         `
-            : ''
-        }
+        : ''
+      }
       </div>
     `;
 

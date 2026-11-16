@@ -20,7 +20,7 @@ export class JudgeExamples {
       <section class="examples-sidebar-card" id="judge-examples-section" aria-labelledby="examples-sidebar-title">
         <div class="examples-sidebar-header">
           <div class="sidebar-badge-row">
-            <span class="sidebar-chip">⚖️ Tester & Judge Sandbox</span>
+            <span class="sidebar-chip">Curated Specimens</span>
           </div>
           <h3 id="examples-sidebar-title" class="sidebar-title">Sample Heirloom Artifacts</h3>
           <p class="sidebar-desc">
@@ -59,7 +59,7 @@ export class JudgeExamples {
             data-id="${ex.id}"
             title="Experience full 3D generation walkthrough with this artifact"
           >
-            <span class="btn-icon">⚡</span> Run Guided 3D Flow
+            <svg class="btn-svg-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="5 3 19 12 5 21 5 3"/></svg> Run Guided 3D Flow
           </button>
           <div class="sidebar-sub-actions">
             <button

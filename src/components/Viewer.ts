@@ -54,7 +54,9 @@ export class ViewerComponent {
     if (!webGLSupported) {
       this.container.innerHTML = `
         <div class="viewer-fallback" role="region" aria-label="3D model viewer fallback">
-          <div class="fallback-icon">🧊</div>
+          <div class="fallback-icon" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21 16-9 5-9-5V8l9-5 9 5v8Z"/><path d="M12 21V12"/><path d="M3.27 6.96 12 12l8.73-5.04"/></svg>
+          </div>
           <h4>3D Interactive Preview Unavailable</h4>
           <p>Your browser does not have WebGL enabled. Your printable 3D files are ready for download below.</p>
         </div>
@@ -65,7 +67,9 @@ export class ViewerComponent {
     if (!this.glbUrl) {
       this.container.innerHTML = `
         <div class="viewer-empty" role="region" aria-label="3D model viewer placeholder">
-          <div class="empty-icon">🏛️</div>
+          <div class="empty-icon" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m9 9 6 6m0-6-6 6"/></svg>
+          </div>
           <p>No 3D model loaded yet. Create your heirloom model above.</p>
         </div>
       `;
