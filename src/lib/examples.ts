@@ -9,6 +9,7 @@ export interface PreloadedExample {
   summary: string;
   prompt: string;
   thumbnailUrl: string;
+  sourceUrl: string;
   imageInputs: ImageInputItem[];
   result: Job;
   meta: {
@@ -21,22 +22,24 @@ export interface PreloadedExample {
 
 export const PRELOADED_EXAMPLES: PreloadedExample[] = [
   {
-    id: 'ashanti-stool',
-    title: 'Ashanti Carved Wooden Stool',
-    origin: 'Kumasi, Ghana • 19th-Century Style Heirloom',
-    badge: 'Cultural Heritage',
+    id: 'benin-ivory-mask',
+    title: 'Benin Ivory Mask of Queen Idia',
+    origin: 'Benin Kingdom, Nigeria • 16th Century',
+    badge: 'Royal Court Ivory',
     category: 'cultural',
     summary:
-      'Ceremonial mahogany stool with traditional curved crescent seat, geometric openwork central pillar, and stepped plinth. Preserved across three generations in Ghana.',
+      'Iconic 16th-century carved ivory pendant mask representing Queen Mother Idia of the Benin Empire, adorned with an openwork crown of Portuguese figures, inlaid iron scarification, and beaded collar.',
     prompt:
-      'Hand-carved wooden ceremonial stool from Ghana with curved crescent seat, intricate central openwork pillar, stepped rectangular base, warm mahogany grain, and smooth worn patina.',
-    thumbnailUrl: '/examples/ashanti-stool.svg',
+      '16th-century Benin Kingdom carved ivory pendant mask of Queen Mother Idia with stylized openwork crown depicting Portuguese bearded figures and mudfish, inlaid iron scarification lines between eyes, almond eyes with iron pupil inlay, full lips, and openwork beaded chignon flange.',
+    thumbnailUrl: '/examples/benin-ivory-mask.jpg',
+    sourceUrl:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR1QKlcRvYGUgutj8nTuT4sINGhP0sbrdgDZcB8ow_-Xw&s=10',
     imageInputs: [
       {
-        name: 'ashanti-stool-front.svg',
-        dataUrl: '/examples/ashanti-stool.svg',
-        size: 3450,
-        type: 'image/svg+xml',
+        name: 'benin-ivory-mask.jpg',
+        dataUrl: '/examples/benin-ivory-mask.jpg',
+        size: 34025,
+        type: 'image/jpeg',
       },
     ],
     result: {
@@ -61,22 +64,24 @@ export const PRELOADED_EXAMPLES: PreloadedExample[] = [
     },
   },
   {
-    id: 'brass-compass',
-    title: "Grandfather's Brass Maritime Compass",
-    origin: 'Naval Navigation Instrument • 1940s Vintage',
-    badge: 'Vintage Precision',
-    category: 'personal',
+    id: 'nok-terracotta-figure',
+    title: 'Nok Terracotta Seated Figure',
+    origin: 'Ancient Nok Culture, Nigeria • c. 500 BCE',
+    badge: 'Ancient Terracotta',
+    category: 'cultural',
     summary:
-      'Pocket brass maritime navigation compass with hinged protective cover, milled coin-edge casing, and magnetic azimuth dial. Carried through naval voyages in the 1940s.',
+      'Ancient terracotta sculpture depicting a seated reflective figure with hand under the chin, cylindrical head, pierced triangular eyes and pupils, tiered hair buns, and flared bead collar.',
     prompt:
-      'Vintage brass pocket compass with hinged protective lid, milled coin-edge rim, circular azimuth dial, needle pivot, and aged golden bronze patina.',
-    thumbnailUrl: '/examples/brass-compass.svg',
+      'Ancient Nigerian Nok culture terracotta sculpted figure, seated with arm resting on raised knee and hand supporting chin, elongated cylindrical head, pierced triangular eyes and pupils, tiered braided hair buns, thick beaded neck rings, and textured porous clay surface.',
+    thumbnailUrl: '/examples/nok-terracotta-figure.jpg',
+    sourceUrl:
+      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQDexvLUeE03m5_bE6HRQpO9pGmvOmLFy6Dz92_PZ1qPA&s=10',
     imageInputs: [
       {
-        name: 'brass-compass-perspective.svg',
-        dataUrl: '/examples/brass-compass.svg',
-        size: 3820,
-        type: 'image/svg+xml',
+        name: 'nok-terracotta-figure.jpg',
+        dataUrl: '/examples/nok-terracotta-figure.jpg',
+        size: 22700,
+        type: 'image/jpeg',
       },
     ],
     result: {

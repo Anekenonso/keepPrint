@@ -27,7 +27,8 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
         expect(ex.badge).toBeTruthy();
         expect(ex.summary).toBeTruthy();
         expect(ex.prompt).toBeTruthy();
-        expect(ex.thumbnailUrl).toMatch(/\.(svg|png|webp)$/);
+        expect(ex.thumbnailUrl).toMatch(/\.(jpg|jpeg|png|svg|webp)$/);
+        expect(ex.sourceUrl).toMatch(/^https?:\/\//);
         expect(ex.imageInputs.length).toBeGreaterThan(0);
         expect(ex.result.status).toBe('succeeded');
         expect(ex.result.glbUrl).toContain('qhsmodel.kujiale.com');
@@ -38,13 +39,13 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
     });
 
     it('retrieves an example by id with getExampleById', () => {
-      const ashanti = getExampleById('ashanti-stool');
-      expect(ashanti).toBeDefined();
-      expect(ashanti?.title).toBe('Ashanti Carved Wooden Stool');
+      const benin = getExampleById('benin-ivory-mask');
+      expect(benin).toBeDefined();
+      expect(benin?.title).toBe('Benin Ivory Mask of Queen Idia');
 
-      const compass = getExampleById('brass-compass');
-      expect(compass).toBeDefined();
-      expect(compass?.title).toBe("Grandfather's Brass Maritime Compass");
+      const nok = getExampleById('nok-terracotta-figure');
+      expect(nok).toBeDefined();
+      expect(nok?.title).toBe('Nok Terracotta Seated Figure');
 
       expect(getExampleById('unknown-item')).toBeUndefined();
     });
@@ -64,9 +65,9 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       const cards = container.querySelectorAll('.example-card');
       expect(cards).toHaveLength(2);
 
-      expect(container.textContent).toContain('Ashanti Carved Wooden Stool');
-      expect(container.textContent).toContain("Grandfather's Brass Maritime Compass");
-      expect(container.textContent).toContain('Instant 3D Preview (No Wait)');
+      expect(container.textContent).toContain('Benin Ivory Mask of Queen Idia');
+      expect(container.textContent).toContain('Nok Terracotta Seated Figure');
+      expect(container.textContent).toContain('Instant 3D Preview');
     });
 
     it('triggers onSelectPreview when clicking Instant 3D Preview', () => {
@@ -80,13 +81,13 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       component.render();
 
       const previewBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="preview"][data-id="ashanti-stool"]'
+        'button[data-action="preview"][data-id="benin-ivory-mask"]'
       );
       expect(previewBtn).not.toBeNull();
       previewBtn?.click();
 
       expect(onSelectPreview).toHaveBeenCalledTimes(1);
-      expect(onSelectPreview.mock.calls[0][0].id).toBe('ashanti-stool');
+      expect(onSelectPreview.mock.calls[0][0].id).toBe('benin-ivory-mask');
     });
 
     it('triggers onLoadInput with image mode when clicking Load Photo', () => {
@@ -100,13 +101,13 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       component.render();
 
       const loadPhotoBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="load-image"][data-id="brass-compass"]'
+        'button[data-action="load-image"][data-id="nok-terracotta-figure"]'
       );
       expect(loadPhotoBtn).not.toBeNull();
       loadPhotoBtn?.click();
 
       expect(onLoadInput).toHaveBeenCalledTimes(1);
-      expect(onLoadInput.mock.calls[0][0].id).toBe('brass-compass');
+      expect(onLoadInput.mock.calls[0][0].id).toBe('nok-terracotta-figure');
       expect(onLoadInput.mock.calls[0][1]).toBe('image');
     });
 
@@ -121,19 +122,19 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       component.render();
 
       const loadPromptBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="load-text"][data-id="ashanti-stool"]'
+        'button[data-action="load-text"][data-id="benin-ivory-mask"]'
       );
       expect(loadPromptBtn).not.toBeNull();
       loadPromptBtn?.click();
 
       expect(onLoadInput).toHaveBeenCalledTimes(1);
-      expect(onLoadInput.mock.calls[0][0].id).toBe('ashanti-stool');
+      expect(onLoadInput.mock.calls[0][0].id).toBe('benin-ivory-mask');
       expect(onLoadInput.mock.calls[0][1]).toBe('text');
     });
   });
 
   describe('End-to-End Judge Flow in App', () => {
-    it('allows judges to instantly preview Ashanti stool and download STL/3MF without waiting', () => {
+    it('allows judges to instantly preview Benin ivory mask and download STL/3MF without waiting', () => {
       const app = new App(container, {
         checkWebGL: () => true,
       });
@@ -141,12 +142,12 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
 
       expect(app.getState()).toBe('upload');
 
-      // Click Instant 3D Preview for Ashanti stool
-      const ashantiPreviewBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="preview"][data-id="ashanti-stool"]'
+      // Click Instant 3D Preview for Benin ivory mask
+      const beninPreviewBtn = container.querySelector<HTMLButtonElement>(
+        'button[data-action="preview"][data-id="benin-ivory-mask"]'
       );
-      expect(ashantiPreviewBtn).not.toBeNull();
-      ashantiPreviewBtn?.click();
+      expect(beninPreviewBtn).not.toBeNull();
+      beninPreviewBtn?.click();
 
       // App should transition immediately to result state
       expect(app.getState()).toBe('result');
@@ -166,7 +167,7 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
 
       // Example banner should be displayed
       expect(container.querySelector('#example-result-banner')?.textContent).toContain(
-        'Ashanti Carved Wooden Stool'
+        'Benin Ivory Mask of Queen Idia'
       );
 
       // Clicking Try Another Heirloom should return to upload state
@@ -182,13 +183,13 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       app.render();
 
       const loadPromptBtn = container.querySelector<HTMLButtonElement>(
-        'button[data-action="load-text"][data-id="brass-compass"]'
+        'button[data-action="load-text"][data-id="nok-terracotta-figure"]'
       );
       expect(loadPromptBtn).not.toBeNull();
       loadPromptBtn?.click();
 
       const promptInput = container.querySelector<HTMLTextAreaElement>('#prompt-input');
-      expect(promptInput?.value).toContain('Vintage brass pocket compass');
+      expect(promptInput?.value).toContain('Nok culture');
     });
   });
 });

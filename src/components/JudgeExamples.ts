@@ -16,19 +16,19 @@ export class JudgeExamples {
 
   public render(): void {
     this.container.innerHTML = `
-      <section class="examples-section" id="judge-examples-section" aria-labelledby="examples-title">
+      <section class="examples-section side-examples" id="judge-examples-section" aria-labelledby="examples-title">
         <div class="examples-header">
           <div class="examples-title-row">
-            <span class="examples-badge-chip">⚖️ Judge & Demo Testing</span>
-            <span class="examples-count-pill">2 Preloaded Heirlooms</span>
+            <span class="examples-badge-chip">⚖️ Judge Testing</span>
+            <span class="examples-count-pill">2 Preloaded</span>
           </div>
-          <h3 id="examples-title" class="examples-title">Preloaded Heirloom Models for Immediate Evaluation</h3>
+          <h3 id="examples-title" class="examples-title">Preloaded Heirloom Models</h3>
           <p class="examples-subtitle">
-            Inspect live 3D models and print-ready downloads right away without waiting 6–12 minutes for cloud GPU queues, or test-drive the generation form with curated sample data.
+            Skip cloud queue wait times: preview 3D meshes & download print files immediately.
           </p>
         </div>
 
-        <div class="examples-grid">
+        <div class="examples-grid side-grid">
           ${PRELOADED_EXAMPLES.map((ex) => this.renderCard(ex)).join('')}
         </div>
       </section>

@@ -110,13 +110,14 @@ export class App {
 
     parent.innerHTML = `
       ${bannerHtml}
-      <div id="examples-mount"></div>
-      <div class="divider-with-label" role="separator" aria-label="Or create your own heirloom model">
-        <span class="divider-line"></span>
-        <span class="divider-text">OR CREATE WITH YOUR OWN HEIRLOOM</span>
-        <span class="divider-line"></span>
+      <div class="upload-view-layout">
+        <div class="upload-main-col">
+          <div id="upload-form-mount"></div>
+        </div>
+        <aside class="upload-side-col" aria-label="Preloaded Examples for Judge Testing">
+          <div id="examples-mount"></div>
+        </aside>
       </div>
-      <div id="upload-form-mount"></div>
     `;
 
     if (hasSaved) {
