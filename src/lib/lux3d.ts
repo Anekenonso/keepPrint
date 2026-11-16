@@ -73,7 +73,10 @@ export function getAholoConfig(overrides?: Lux3dConfig): { apiKey: string; regio
     }
   }
 
-  const apiKey = overrides?.apiKey || envApiKey;
+  // When requests are routed through the backend proxy, the client browser does not hold
+  // the secret API key. We supply a non-empty placeholder ('proxy-session') so the SDK
+  // client initializes cleanly, while the proxy attaches the real secret server-side.
+  const apiKey = overrides?.apiKey || envApiKey || 'proxy-session';
   const region = overrides?.region || envRegion;
 
   return { apiKey, region };

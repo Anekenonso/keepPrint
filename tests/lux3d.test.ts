@@ -459,6 +459,20 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(config.region).toBe('cn');
     });
 
+    it('defaults to proxy-session placeholder when no key is provided for secure client use', () => {
+      const originalEnvAholo = process.env.AHOLO_API_KEY;
+      const originalEnvVite = process.env.VITE_AHOLO_API_KEY;
+      delete process.env.AHOLO_API_KEY;
+      delete process.env.VITE_AHOLO_API_KEY;
+      try {
+        const config = getAholoConfig();
+        expect(config.apiKey).toBe('proxy-session');
+      } finally {
+        if (originalEnvAholo) process.env.AHOLO_API_KEY = originalEnvAholo;
+        if (originalEnvVite) process.env.VITE_AHOLO_API_KEY = originalEnvVite;
+      }
+    });
+
     it('resolves reverse proxy baseUrl in browser environment to avoid CORS', () => {
       // In JSDOM, window and window.location are defined
       const origin = window.location.origin.replace(/\/$/, '');
