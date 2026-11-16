@@ -164,6 +164,21 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
 - **Live Demo Shell**: The static production bundle is configured for zero-configuration deployment on Vercel (`vercel.json`) and Netlify (`netlify.toml`).
 - **Smoke Verified**: Ephemeral preview server smoke test (`npm run smoke:serve`) validates the served HTML and Keepprint application shell on a random port.
 
+### 10.1 Preloaded Examples for Judge & Hackathon Testing
+
+To allow hackathon judges and evaluators to test Keepprint instantly without waiting for 6–12 minute cloud GPU queues or consuming API credits, Keepprint includes **two preloaded, fully reconstructed heirloom examples** accessible directly from the home screen:
+
+| Example                                  | Category          | Provenance & Description                                                                                  | Aholo Lux3D Task IDs                                 | Instant Testing Actions                                                                                       |
+| :--------------------------------------- | :---------------- | :-------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
+| **Ashanti Carved Wooden Stool**          | Cultural Heritage | Ceremonial mahogany stool with curved crescent seat and geometric openwork pillar from Kumasi, Ghana.     | Task `8029847` (G1 Mesh)<br/>Task `8030283` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
+| **Grandfather's Brass Maritime Compass** | Vintage Precision | Pocket brass navigation compass with hinged cover, coin-edge casing, and azimuth dial from 1940s voyages. | Task `8030052` (G1 Mesh)<br/>Task `8030163` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
+
+Both preloaded models include complete, verified cloud generation outputs:
+
+- **PBR Textured GLB**: Full-color interactive WebGL inspection with orbit, zoom, and finish previews.
+- **Watertight STL**: Clean mesh verified against manifold slicer rules.
+- **Slicer 3MF**: Standard 3MF archive ready for Bambu Studio, PrusaSlicer, or Cura.
+
 ---
 
 ## 11. Evidence & Screenshots

@@ -3,8 +3,10 @@ import { ProgressComponent, type ProgressStage } from './components/Progress';
 import { ViewerComponent } from './components/Viewer';
 import { DownloadPanel } from './components/DownloadPanel';
 import { PrintGuideModal } from './components/PrintGuideModal';
+import { JudgeExamples } from './components/JudgeExamples';
 import { generate3D, type GenerationResult } from './lib/lux3d';
 import { saveLastJob, loadLastJob, clearLastJob, hasLastJob } from './lib/storage';
+import { PRELOADED_EXAMPLES, type PreloadedExample } from './lib/examples';
 import type { GenerationInput, Job } from './lib/types';
 import type { Lux3dClient } from '@manycore/aholo-sdk-lux3d';
 
@@ -35,6 +37,7 @@ export class App {
   private currentJob: Job | null = null;
   private lastInput: GenerationInput | null = null;
   private abortController: AbortController | null = null;
+  private activeExampleTitle: string | null = null;
 
   constructor(container: HTMLElement, options?: AppOptions) {
     this.container = container;
@@ -107,6 +110,12 @@ export class App {
 
     parent.innerHTML = `
       ${bannerHtml}
+      <div id="examples-mount"></div>
+      <div class="divider-with-label" role="separator" aria-label="Or create your own heirloom model">
+        <span class="divider-line"></span>
+        <span class="divider-text">OR CREATE WITH YOUR OWN HEIRLOOM</span>
+        <span class="divider-line"></span>
+      </div>
       <div id="upload-form-mount"></div>
     `;
 
@@ -131,14 +140,37 @@ export class App {
     }
 
     const formMount = parent.querySelector<HTMLElement>('#upload-form-mount');
-    if (!formMount) return;
+    const examplesMount = parent.querySelector<HTMLElement>('#examples-mount');
 
-    const uploadForm = new UploadForm(formMount, {
-      onSubmit: (payload) => {
-        this.startGeneration(payload);
-      },
-    });
-    uploadForm.render();
+    let uploadForm: UploadForm | null = null;
+    if (formMount) {
+      uploadForm = new UploadForm(formMount, {
+        onSubmit: (payload) => {
+          this.startGeneration(payload);
+        },
+      });
+      uploadForm.render();
+    }
+
+    if (examplesMount && uploadForm) {
+      const examplesComponent = new JudgeExamples(examplesMount, {
+        onSelectPreview: (example) => {
+          this.loadExample(example);
+        },
+        onLoadInput: (example, mode) => {
+          if (mode === 'image') {
+            uploadForm?.setImages(example.imageInputs);
+          } else {
+            uploadForm?.setPrompt(example.prompt);
+          }
+          const target = formMount || examplesMount;
+          if (target && typeof target.scrollIntoView === 'function') {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        },
+      });
+      examplesComponent.render();
+    }
   }
 
   private renderProgress(parent: HTMLElement): void {
@@ -163,8 +195,29 @@ export class App {
   }
 
   private renderResult(parent: HTMLElement): void {
+    const matchingExample = PRELOADED_EXAMPLES.find(
+      (ex) => ex.result.id === this.currentJob?.id || ex.title === this.activeExampleTitle
+    );
+
+    let exampleBannerHtml = '';
+    if (matchingExample) {
+      exampleBannerHtml = `
+        <div class="example-result-banner" id="example-result-banner" role="status">
+          <div class="example-result-info">
+            <span class="example-result-badge">⚖️ Judge & Demo Sample</span>
+            <span class="example-result-title"><strong>${matchingExample.title}</strong></span>
+            <span class="example-result-meta">• Generated with Aholo Lux3D G1 (Task #${matchingExample.meta.aholoTaskId})</span>
+          </div>
+          <button type="button" class="btn-text-subtle" id="back-to-examples-btn" title="Back to Examples and Generator">
+            ← Try Another Heirloom
+          </button>
+        </div>
+      `;
+    }
+
     parent.innerHTML = `
       <div class="result-view">
+        ${exampleBannerHtml}
         <div class="result-header">
           <h2>Your 3D Heirloom Model</h2>
           <p>Inspect the full-color model in 3D and download clean, print-ready files for your slicer.</p>
@@ -173,6 +226,11 @@ export class App {
         <div id="download-mount"></div>
       </div>
     `;
+
+    const backBtn = parent.querySelector<HTMLButtonElement>('#back-to-examples-btn');
+    backBtn?.addEventListener('click', () => {
+      this.reset();
+    });
 
     const viewerMount = parent.querySelector<HTMLElement>('#viewer-mount');
     const downloadMount = parent.querySelector<HTMLElement>('#download-mount');
@@ -296,10 +354,19 @@ export class App {
     }
   }
 
+  public loadExample(example: PreloadedExample): void {
+    this.currentJob = { ...example.result };
+    this.activeExampleTitle = example.title;
+    saveLastJob(this.currentJob, { storage: this.options.storage });
+    this.state = 'result';
+    this.render();
+  }
+
   public reset(): void {
     this.state = 'upload';
     this.currentJob = null;
     this.lastInput = null;
+    this.activeExampleTitle = null;
     this.render();
   }
 

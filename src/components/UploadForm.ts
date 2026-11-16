@@ -330,4 +330,24 @@ export class UploadForm {
   public getPrompt(): string {
     return this.promptText;
   }
+
+  public setSourceType(type: SourceType): void {
+    this.sourceType = type;
+    this.clearError();
+    this.render();
+  }
+
+  public setPrompt(prompt: string): void {
+    this.promptText = prompt;
+    this.sourceType = 'text';
+    this.clearError();
+    this.render();
+  }
+
+  public setImages(images: ImageInputItem[]): void {
+    this.images = [...images];
+    this.sourceType = 'image';
+    this.clearError();
+    this.render();
+  }
 }
