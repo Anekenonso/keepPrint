@@ -44,8 +44,9 @@ export class UploadForm {
           </button>
         </div>
 
-        <div class="tab-content" id="image-panel" style="${this.sourceType === 'image' ? 'display: block;' : 'display: none;'
-      }">
+        <div class="tab-content" id="image-panel" style="${
+          this.sourceType === 'image' ? 'display: block;' : 'display: none;'
+        }">
           <div
             class="drop-zone"
             id="drop-zone"
@@ -72,8 +73,9 @@ export class UploadForm {
           </div>
         </div>
 
-        <div class="tab-content" id="text-panel" style="${this.sourceType === 'text' ? 'display: block;' : 'display: none;'
-      }">
+        <div class="tab-content" id="text-panel" style="${
+          this.sourceType === 'text' ? 'display: block;' : 'display: none;'
+        }">
           <label for="prompt-input" class="field-label">
             Describe your heirloom in detail:
           </label>
