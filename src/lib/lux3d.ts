@@ -296,7 +296,7 @@ export async function pollTask(
   try {
     const result = await client.tasks.waitFor(taskId, {
       intervalMs: options?.intervalMs ?? 3000,
-      timeoutMs: options?.timeoutMs ?? 600000, // 10 min default
+      timeoutMs: options?.timeoutMs ?? 1200000, // 20 min default to accommodate multi-view cloud GPU queues
       signal: options?.signal,
     });
 

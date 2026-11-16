@@ -23,6 +23,8 @@ export class ProgressComponent {
   private currentStage: ProgressStage = 'upload';
   private currentMessage: string = 'Preparing heirloom data...';
   private errorMessage: string | null = null;
+  private startTime: number = Date.now();
+  private timerInterval: ReturnType<typeof setInterval> | null = null;
 
   constructor(container: HTMLElement, options?: ProgressComponentOptions) {
     this.container = container;
@@ -45,6 +47,16 @@ export class ProgressComponent {
           <p class="progress-message" id="progress-message">
             ${isError ? this.errorMessage : this.currentMessage}
           </p>
+          ${
+            !isError && this.currentStage !== 'complete'
+              ? `
+            <div class="progress-timer" id="progress-timer">
+              <span class="timer-dot"></span>
+              <span>Elapsed: <strong id="timer-text">${this.formatElapsed()}</strong></span>
+            </div>
+          `
+              : ''
+          }
         </div>
 
         ${
@@ -72,6 +84,10 @@ export class ProgressComponent {
               `;
             }).join('')}
           </div>
+          <div class="progress-hint">
+            <span class="hint-icon">ℹ️</span>
+            <span>Synthesizing a watertight 3D heirloom mesh from multi-angle photos involves deep volumetric reconstruction on Aholo's cloud GPUs. This typically takes <strong>3–7 minutes</strong>. Please keep this tab active.</span>
+          </div>
         `
             : `
           <div class="error-action-container">
@@ -94,6 +110,37 @@ export class ProgressComponent {
     `;
 
     this.attachEvents();
+    this.startTimer();
+  }
+
+  private formatElapsed(): string {
+    const elapsedSec = Math.max(0, Math.floor((Date.now() - this.startTime) / 1000));
+    const mins = Math.floor(elapsedSec / 60);
+    const secs = elapsedSec % 60;
+    return `${mins}m ${secs.toString().padStart(2, '0')}s`;
+  }
+
+  private startTimer(): void {
+    this.stopTimer();
+    if (this.currentStage !== 'complete' && !this.errorMessage) {
+      this.timerInterval = setInterval(() => {
+        const timerText = this.container.querySelector<HTMLElement>('#timer-text');
+        if (timerText) {
+          timerText.textContent = this.formatElapsed();
+        }
+      }, 1000);
+    }
+  }
+
+  public destroy(): void {
+    this.stopTimer();
+  }
+
+  private stopTimer(): void {
+    if (this.timerInterval) {
+      clearInterval(this.timerInterval);
+      this.timerInterval = null;
+    }
   }
 
   private attachEvents(): void {
