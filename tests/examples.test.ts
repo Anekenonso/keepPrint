@@ -52,7 +52,7 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
   });
 
   describe('JudgeExamples Component', () => {
-    it('renders both example cards with title, origin, and action buttons', () => {
+    it('renders both example items with title and action buttons', () => {
       const onSelectPreview = vi.fn();
       const onLoadInput = vi.fn();
 
@@ -62,8 +62,8 @@ describe('TS-11: Preloaded Examples for Judge & Demo Testing', () => {
       });
       component.render();
 
-      const cards = container.querySelectorAll('.example-card');
-      expect(cards).toHaveLength(2);
+      const items = container.querySelectorAll('.example-strip-item, .example-card');
+      expect(items).toHaveLength(2);
 
       expect(container.textContent).toContain('Benin Ivory Mask of Queen Idia');
       expect(container.textContent).toContain('Nok Terracotta Seated Figure');

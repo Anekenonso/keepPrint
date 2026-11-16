@@ -16,76 +16,57 @@ export class JudgeExamples {
 
   public render(): void {
     this.container.innerHTML = `
-      <section class="examples-section side-examples" id="judge-examples-section" aria-labelledby="examples-title">
-        <div class="examples-header">
-          <div class="examples-title-row">
-            <span class="examples-badge-chip">⚖️ Judge Testing</span>
-            <span class="examples-count-pill">2 Preloaded</span>
-          </div>
-          <h3 id="examples-title" class="examples-title">Preloaded Heirloom Models</h3>
-          <p class="examples-subtitle">
-            Skip cloud queue wait times: preview 3D meshes & download print files immediately.
-          </p>
+      <div class="examples-strip" id="judge-examples-section" role="region" aria-label="Sample heirlooms for judge testing">
+        <div class="examples-strip-header">
+          <span class="examples-strip-icon">⚖️</span>
+          <span class="examples-strip-title">Try Sample Heirlooms:</span>
         </div>
-
-        <div class="examples-grid side-grid">
-          ${PRELOADED_EXAMPLES.map((ex) => this.renderCard(ex)).join('')}
+        <div class="examples-strip-list">
+          ${PRELOADED_EXAMPLES.map((ex) => this.renderItem(ex)).join('')}
         </div>
-      </section>
+      </div>
     `;
 
     this.attachEvents();
   }
 
-  private renderCard(ex: PreloadedExample): string {
+  private renderItem(ex: PreloadedExample): string {
     return `
-      <article class="example-card" data-example-id="${ex.id}">
-        <div class="example-thumbnail-wrap">
-          <img src="${ex.thumbnailUrl}" alt="${ex.title}" class="example-thumbnail" loading="lazy" />
-          <span class="example-category-badge badge-${ex.category}">${ex.badge}</span>
-        </div>
-        <div class="example-content">
-          <div class="example-origin">${ex.origin}</div>
-          <h4 class="example-name">${ex.title}</h4>
-          <p class="example-summary">${ex.summary}</p>
-          <div class="example-meta-tags">
-            <span class="meta-tag">⚡ Aholo G1 Mesh</span>
-            <span class="meta-tag">🧊 Watertight STL</span>
-            <span class="meta-tag">📦 Slicer 3MF</span>
+      <div class="example-strip-item" data-example-id="${ex.id}">
+        <button
+          type="button"
+          class="example-strip-link"
+          data-action="preview"
+          data-id="${ex.id}"
+          title="Instant 3D Preview: ${ex.title}"
+        >
+          <img src="${ex.thumbnailUrl}" alt="${ex.title}" class="strip-thumb" />
+          <div class="strip-text">
+            <span class="strip-name">${ex.title}</span>
+            <span class="strip-action">Instant 3D Preview &rarr;</span>
           </div>
-          <div class="example-actions">
-            <button
-              type="button"
-              class="btn-example-preview"
-              data-action="preview"
-              data-id="${ex.id}"
-              title="Instantly view the interactive 3D model and test downloads"
-            >
-              <span class="btn-icon">⚡</span> Instant 3D Preview (No Wait)
-            </button>
-            <div class="example-secondary-actions">
-              <button
-                type="button"
-                class="btn-example-load"
-                data-action="load-image"
-                data-id="${ex.id}"
-                title="Load sample photo into generator form"
-              >
-                <span class="btn-icon">📷</span> Load Photo
-              </button>
-              <button
-                type="button"
-                class="btn-example-load-subtle"
-                data-action="load-text"
-                data-id="${ex.id}"
-                title="Load sample description into generator form"
-              >
-                <span class="btn-icon">✍️</span> Load Prompt
-              </button>
-            </div>
-          </div>
+        </button>
+        <div class="strip-load-actions">
+          <button
+            type="button"
+            class="btn-strip-load"
+            data-action="load-image"
+            data-id="${ex.id}"
+            title="Load photo into form"
+          >
+            Photo
+          </button>
+          <button
+            type="button"
+            class="btn-strip-load"
+            data-action="load-text"
+            data-id="${ex.id}"
+            title="Load prompt into form"
+          >
+            Prompt
+          </button>
         </div>
-      </article>
+      </div>
     `;
   }
 
