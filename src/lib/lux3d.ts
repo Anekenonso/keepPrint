@@ -174,15 +174,18 @@ export function extractModelUrls(outputs: TaskOutput[] | undefined): {
 }
 
 export async function createImageTo3dTask(
-  params: { img: string; faceCount?: number } | { imgs: string[]; faceCount?: number },
+  params:
+    | { img: string; faceCount?: number; version?: 'G1' | 'G1-Turbo' }
+    | { imgs: string[]; faceCount?: number; version?: 'G1' | 'G1-Turbo' },
   client: Lux3dClient
 ): Promise<number> {
   try {
     const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
+    const version = params.version ?? 'G1-Turbo';
     if ('imgs' in params && params.imgs.length > 1) {
       return await client.imgTo3d.create({
         imgs: params.imgs,
-        version: 'G1',
+        version,
         faceCount,
       });
     }
@@ -190,7 +193,7 @@ export async function createImageTo3dTask(
     const singleImg = 'img' in params ? params.img : params.imgs[0];
     return await client.imgTo3d.create({
       img: singleImg,
-      version: 'G1',
+      version,
       faceCount,
     });
   } catch (error: unknown) {
@@ -200,14 +203,15 @@ export async function createImageTo3dTask(
 }
 
 export async function createTextTo3dTask(
-  params: { prompt: string; faceCount?: number },
+  params: { prompt: string; faceCount?: number; version?: 'G1' | 'G1-Turbo' },
   client: Lux3dClient
 ): Promise<number> {
   try {
     const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
+    const version = params.version ?? 'G1-Turbo';
     return await client.textTo3d.create({
       prompt: params.prompt,
-      version: 'G1',
+      version,
       faceCount,
     });
   } catch (error: unknown) {
@@ -298,7 +302,7 @@ export async function pollTask(
 ): Promise<Lux3dTaskResult> {
   try {
     const result = await client.tasks.waitFor(taskId, {
-      intervalMs: options?.intervalMs ?? 3000,
+      intervalMs: options?.intervalMs ?? 1500, // Reduced from 3000ms to 1500ms for faster feedback
       timeoutMs: options?.timeoutMs ?? 1200000, // 20 min default to accommodate multi-view cloud GPU queues
       signal: options?.signal,
     });
@@ -354,7 +358,11 @@ export async function generate3D(
   }
 
   const client = options?.client ?? createClient(options?.config);
-  const enableRetopo = options?.enableRetopo ?? true;
+  const isTurbo = input.qualityMode !== 'ultra';
+  const modelVersion = isTurbo ? 'G1-Turbo' : 'G1';
+  // In Turbo mode, the mesh is already generated with targeted faceCount (80k),
+  // so we skip the redundant retopology step unless explicitly forced, saving 30-60s!
+  const enableRetopo = options?.enableRetopo ?? (isTurbo ? false : true);
   const enableExport = options?.enableExport ?? true;
 
   let taskId: number;
@@ -364,12 +372,17 @@ export async function generate3D(
     options?.onProgress?.(`Uploading ${countMsg} to Lux3D...`);
     const imgUrls = images.map((img) => img.dataUrl || img.name);
     taskId = await createImageTo3dTask(
-      imgUrls.length > 1 ? { imgs: imgUrls } : { img: imgUrls[0] },
+      imgUrls.length > 1
+        ? { imgs: imgUrls, version: modelVersion }
+        : { img: imgUrls[0], version: modelVersion },
       client
     );
   } else {
     options?.onProgress?.('Submitting heirloom description to Lux3D...');
-    taskId = await createTextTo3dTask({ prompt: input.prompt || '' }, client);
+    taskId = await createTextTo3dTask(
+      { prompt: input.prompt || '', version: modelVersion },
+      client
+    );
   }
 
   options?.onProgress?.('Generating 3D heirloom mesh...');

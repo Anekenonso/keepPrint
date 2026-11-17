@@ -2,6 +2,8 @@ export type JobStatus = 'pending' | 'running' | 'succeeded' | 'failed';
 
 export type SourceType = 'image' | 'text';
 
+export type QualityMode = 'turbo' | 'ultra';
+
 export interface Job {
   id: string;
   status: JobStatus;
@@ -28,6 +30,7 @@ export interface GenerationInput {
   sourceType: SourceType;
   prompt?: string;
   images?: ImageInputItem[];
+  qualityMode?: QualityMode;
 }
 
 export type PrintReadiness = 'good' | 'attention';

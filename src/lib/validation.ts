@@ -42,6 +42,7 @@ export const generationInputSchema = z
       .array(imageInputItemSchema)
       .max(MAX_IMAGE_COUNT, `You can upload at most ${MAX_IMAGE_COUNT} photos.`)
       .optional(),
+    qualityMode: z.enum(['turbo', 'ultra']).optional(),
   })
   .superRefine((data, ctx) => {
     const hasImages = Boolean(data.images && data.images.length > 0);

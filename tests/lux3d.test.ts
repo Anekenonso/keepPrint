@@ -66,6 +66,24 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(taskId).toBe(12345);
       expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
         img: 'data:image/jpeg;base64,sample',
+        version: 'G1-Turbo',
+        faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+      });
+    });
+
+    it('supports explicit version override (e.g. G1 Ultra)', async () => {
+      const mockClient = {
+        imgTo3d: {
+          create: vi.fn().mockResolvedValue(12345),
+        },
+      } as unknown as Lux3dClient;
+
+      await createImageTo3dTask(
+        { img: 'data:image/jpeg;base64,sample', version: 'G1' },
+        mockClient
+      );
+      expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
+        img: 'data:image/jpeg;base64,sample',
         version: 'G1',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
@@ -85,7 +103,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(taskId).toBe(67890);
       expect(mockClient.textTo3d.create).toHaveBeenCalledWith({
         prompt: 'Traditional brass drinking vessel',
-        version: 'G1',
+        version: 'G1-Turbo',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
     });
@@ -431,10 +449,58 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       expect(result.taskId).toBe(55555);
       expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
         imgs: ['data:img1', 'data:img2', 'data:img3'],
+        version: 'G1-Turbo',
+        faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+      });
+      expect(
+        progressMessages.some((msg) => msg.includes('Uploading 3 heirloom photos to Lux3D'))
+      ).toBe(true);
+    });
+
+    it('uses G1 model and enables retopology when qualityMode is ultra', async () => {
+      const mockClient = {
+        imgTo3d: {
+          create: vi.fn().mockResolvedValue(77777),
+        },
+        retopology: {
+          create: vi.fn().mockResolvedValue(77778),
+        },
+        tasks: {
+          waitFor: vi.fn().mockImplementation((id: number) => {
+            if (id === 77777) {
+              return Promise.resolve({
+                taskId: 77777,
+                status: LUX3D_STATUS_SUCCESS,
+                outputs: [{ content: 'https://cdn.example.com/base.glb' }],
+              });
+            }
+            return Promise.resolve({
+              taskId: 77778,
+              status: LUX3D_STATUS_SUCCESS,
+              outputs: [{ content: 'https://cdn.example.com/retopo.glb' }],
+            });
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const ultraInput: GenerationInput = {
+        sourceType: 'image',
+        images: [{ name: 'heirloom.jpg', size: 1024, type: 'image/jpeg', dataUrl: 'data:img' }],
+        qualityMode: 'ultra',
+      };
+
+      const result = await generate3D(ultraInput, {
+        client: mockClient,
+        enableExport: false,
+      });
+
+      expect(result.status).toBe('succeeded');
+      expect(mockClient.imgTo3d.create).toHaveBeenCalledWith({
+        img: 'data:img',
         version: 'G1',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
       });
-      expect(progressMessages).toContain('Uploading 3 heirloom photos to Lux3D...');
+      expect(result.retopoGlbUrl).toBe('https://cdn.example.com/retopo.glb');
     });
   });
 

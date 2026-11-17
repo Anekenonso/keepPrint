@@ -166,6 +166,22 @@ describe('TS-01: Input Validation', () => {
         expect(result.errors.some((msg) => msg.includes('at most 4 photos'))).toBe(true);
       }
     });
+
+    it('accepts qualityMode turbo and ultra', () => {
+      const turboInput: GenerationInput = {
+        sourceType: 'text',
+        prompt: 'Ceremonial vessel',
+        qualityMode: 'turbo',
+      };
+      expect(validateGenerationInput(turboInput).success).toBe(true);
+
+      const ultraInput: GenerationInput = {
+        sourceType: 'text',
+        prompt: 'Ceremonial vessel',
+        qualityMode: 'ultra',
+      };
+      expect(validateGenerationInput(ultraInput).success).toBe(true);
+    });
   });
 });
 

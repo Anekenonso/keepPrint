@@ -1,15 +1,17 @@
-import type { GenerationInput, ImageInputItem, SourceType } from '../lib/types';
+import type { GenerationInput, ImageInputItem, QualityMode, SourceType } from '../lib/types';
 import { validateImageFile, validateGenerationInput, MAX_IMAGE_COUNT } from '../lib/validation';
 
 export interface UploadFormOptions {
   onSubmit: (payload: GenerationInput) => void;
   initialSourceType?: SourceType;
+  initialQualityMode?: QualityMode;
 }
 
 export class UploadForm {
   private container: HTMLElement;
   private options: UploadFormOptions;
   private sourceType: SourceType;
+  private qualityMode: QualityMode;
   private images: ImageInputItem[] = [];
   private promptText: string = '';
   private errorMessage: string | null = null;
@@ -18,6 +20,7 @@ export class UploadForm {
     this.container = container;
     this.options = options;
     this.sourceType = options.initialSourceType || 'image';
+    this.qualityMode = options.initialQualityMode || 'turbo';
   }
 
   public render(): void {
@@ -95,6 +98,44 @@ export class UploadForm {
           style="${this.errorMessage ? 'display: block;' : 'display: none;'}"
         >
           ${this.errorMessage || ''}
+        </div>
+
+        <div class="quality-mode-container">
+          <label class="field-label">Generation Speed & Model:</label>
+          <div class="quality-mode-cards" role="radiogroup" aria-label="Generation speed and model mode">
+            <label class="quality-card ${this.qualityMode === 'turbo' ? 'selected' : ''}" for="quality-turbo">
+              <input
+                type="radio"
+                name="quality-mode"
+                id="quality-turbo"
+                value="turbo"
+                ${this.qualityMode === 'turbo' ? 'checked' : ''}
+              />
+              <div class="quality-card-content">
+                <div class="quality-title-row">
+                  <span class="quality-badge fast">⚡ Fast Turbo</span>
+                  <span class="quality-time">~25s</span>
+                </div>
+                <p class="quality-desc">Recommended for 3D printing. Ultra-fast turnaround with 80k face mesh budget.</p>
+              </div>
+            </label>
+            <label class="quality-card ${this.qualityMode === 'ultra' ? 'selected' : ''}" for="quality-ultra">
+              <input
+                type="radio"
+                name="quality-mode"
+                id="quality-ultra"
+                value="ultra"
+                ${this.qualityMode === 'ultra' ? 'checked' : ''}
+              />
+              <div class="quality-card-content">
+                <div class="quality-title-row">
+                  <span class="quality-badge ultra">💎 Ultra Detail</span>
+                  <span class="quality-time">~90s</span>
+                </div>
+                <p class="quality-desc">Full G1 cloud pipeline with multi-pass retopology for intricate carvings.</p>
+              </div>
+            </label>
+          </div>
         </div>
 
         <button type="submit" class="submit-btn" id="submit-btn">
@@ -239,6 +280,21 @@ export class UploadForm {
       }
     });
 
+    const qualityInputs = this.container.querySelectorAll<HTMLInputElement>(
+      'input[name="quality-mode"]'
+    );
+    qualityInputs.forEach((input) => {
+      input.addEventListener('change', () => {
+        if (input.checked) {
+          this.qualityMode = input.value as QualityMode;
+          this.container.querySelectorAll('.quality-card').forEach((card) => {
+            card.classList.remove('selected');
+          });
+          input.closest('.quality-card')?.classList.add('selected');
+        }
+      });
+    });
+
     form?.addEventListener('submit', (e) => {
       e.preventDefault();
       this.handleSubmit();
@@ -295,6 +351,7 @@ export class UploadForm {
       sourceType: this.sourceType,
       prompt: this.promptText.trim() || undefined,
       images: this.images.length > 0 ? this.images : undefined,
+      qualityMode: this.qualityMode,
     };
 
     const validation = validateGenerationInput(payload);
@@ -305,6 +362,16 @@ export class UploadForm {
 
     this.clearError();
     this.options.onSubmit(payload);
+  }
+
+  public getQualityMode(): QualityMode {
+    return this.qualityMode;
+  }
+
+  public setQualityMode(mode: QualityMode): void {
+    this.qualityMode = mode;
+    this.clearError();
+    this.render();
   }
 
   public showError(msg: string): void {

@@ -307,5 +307,48 @@ describe('TS-06: UploadForm Component', () => {
 
       vi.unstubAllGlobals();
     });
+
+    it('renders quality mode cards with Fast Turbo selected by default', () => {
+      const onSubmit = vi.fn();
+      const form = new UploadForm(container, { onSubmit });
+      form.render();
+
+      const turboRadio = container.querySelector<HTMLInputElement>('#quality-turbo')!;
+      const ultraRadio = container.querySelector<HTMLInputElement>('#quality-ultra')!;
+
+      expect(turboRadio).not.toBeNull();
+      expect(ultraRadio).not.toBeNull();
+      expect(turboRadio.checked).toBe(true);
+      expect(ultraRadio.checked).toBe(false);
+      expect(form.getQualityMode()).toBe('turbo');
+    });
+
+    it('allows toggling quality mode to ultra and includes it in submitted payload', () => {
+      let submittedPayload: GenerationInput | null = null;
+      const form = new UploadForm(container, {
+        initialSourceType: 'text',
+        onSubmit: (payload) => {
+          submittedPayload = payload;
+        },
+      });
+      form.render();
+
+      const promptInput = container.querySelector<HTMLTextAreaElement>('#prompt-input')!;
+      promptInput.value = 'Intricate silver filigree pendant';
+      promptInput.dispatchEvent(new Event('input'));
+
+      const ultraRadio = container.querySelector<HTMLInputElement>('#quality-ultra')!;
+      ultraRadio.checked = true;
+      ultraRadio.dispatchEvent(new Event('change'));
+
+      expect(form.getQualityMode()).toBe('ultra');
+
+      const submitBtn = container.querySelector<HTMLButtonElement>('#submit-btn')!;
+      submitBtn.click();
+
+      expect(submittedPayload).not.toBeNull();
+      const finalPayload = submittedPayload as unknown as GenerationInput;
+      expect(finalPayload.qualityMode).toBe('ultra');
+    });
   });
 });
