@@ -117,9 +117,9 @@ export class UploadForm {
                     <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     Fast (Turbo)
                   </span>
-                  <span class="quality-time">~60s (3D)</span>
+                  <span class="quality-time">Usually 1–3 minutes</span>
                 </div>
-                <p class="quality-desc">Instant 3D model in ~60s. STL &amp; 3MF slice files finish in background.</p>
+                <p class="quality-desc">Recommended for 3D printing. Print files can finish in the background.</p>
               </div>
             </label>
             <label class="quality-card ${this.qualityMode === 'ultra' ? 'selected' : ''}" for="quality-ultra">
@@ -136,7 +136,7 @@ export class UploadForm {
                     <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
                     Detailed (Ultra)
                   </span>
-                  <span class="quality-time">~3–4 min</span>
+                  <span class="quality-time">Usually 5–8 minutes</span>
                 </div>
                 <p class="quality-desc">Full G1 cloud pipeline with multi-pass retopology for intricate carvings.</p>
               </div>

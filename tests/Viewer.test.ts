@@ -28,6 +28,18 @@ describe('TS-08: Viewer Component & WebGL Handling', () => {
     expect(modelViewerEl?.getAttribute('alt')).toBe('3D family heirloom gold pocket watch');
     expect(modelViewerEl?.hasAttribute('camera-controls')).toBe(true);
     expect(modelViewerEl?.hasAttribute('auto-rotate')).toBe(true);
+
+    // Verify loading overlay with calm text and spinner is rendered
+    const overlay = container.querySelector('#viewer-loading-overlay');
+    expect(overlay).not.toBeNull();
+    expect(overlay?.textContent).toContain('Loading your 3D heirloom…');
+    expect(overlay?.textContent).toContain('Almost ready to inspect and download');
+    expect(container.querySelector('.viewer-spinner')).not.toBeNull();
+    expect(overlay?.classList.contains('is-loaded')).toBe(false);
+
+    // Simulating model-viewer load event marks overlay as loaded (fades out)
+    modelViewerEl?.dispatchEvent(new Event('load'));
+    expect(overlay?.classList.contains('is-loaded')).toBe(true);
   });
 
   it('updates model URL dynamically without error', () => {

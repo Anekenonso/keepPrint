@@ -124,23 +124,38 @@ export class ViewerComponent {
           </div>
         </div>
 
-        <model-viewer
-          id="heirloom-viewer"
-          src="${this.glbUrl}"
-          ${this.posterUrl ? `poster="${this.posterUrl}"` : ''}
-          alt="${this.altText}"
-          class="mat-${this.currentMaterial}"
-          ${this.autoRotate ? 'auto-rotate' : ''}
-          ${this.cameraControls ? 'camera-controls' : ''}
-          touch-action="pan-y"
-          shadow-intensity="1"
-          exposure="1"
-          interaction-prompt="auto"
-          ar
-          ar-modes="webxr scene-viewer quick-look"
-        >
-          <div slot="progress-bar" class="viewer-loading-bar"></div>
-        </model-viewer>
+        <div class="viewer-stage" id="viewer-stage">
+          <model-viewer
+            id="heirloom-viewer"
+            src="${this.glbUrl}"
+            ${this.posterUrl ? `poster="${this.posterUrl}"` : ''}
+            alt="${this.altText}"
+            class="mat-${this.currentMaterial}"
+            ${this.autoRotate ? 'auto-rotate' : ''}
+            ${this.cameraControls ? 'camera-controls' : ''}
+            touch-action="pan-y"
+            shadow-intensity="1"
+            exposure="1"
+            interaction-prompt="auto"
+            ar
+            ar-modes="webxr scene-viewer quick-look"
+          >
+            <div slot="progress-bar" class="viewer-loading-bar"></div>
+          </model-viewer>
+
+          <div
+            class="viewer-loading-overlay"
+            id="viewer-loading-overlay"
+            role="status"
+            aria-live="polite"
+          >
+            <div class="viewer-loading-content">
+              <span class="viewer-spinner" aria-hidden="true"></span>
+              <p class="viewer-loading-title">Loading your 3D heirloom…</p>
+              <p class="viewer-loading-sub">Almost ready to inspect and download</p>
+            </div>
+          </div>
+        </div>
         <div class="viewer-controls-hint">
           <span>Rotate: Drag / Swipe</span> &bull; <span>Zoom: Pinch / Scroll</span>
         </div>
@@ -165,11 +180,31 @@ export class ViewerComponent {
     });
 
     const viewerEl = this.container.querySelector<HTMLElement>('#heirloom-viewer');
-    viewerEl?.addEventListener('load', () => {
-      if (this.currentMaterial !== 'original') {
-        this.applyMaterialToModel(this.currentMaterial);
+    const overlay = this.container.querySelector<HTMLElement>('#viewer-loading-overlay');
+    const stage = this.container.querySelector<HTMLElement>('#viewer-stage');
+
+    const markLoaded = () => {
+      overlay?.classList.add('is-loaded');
+      stage?.classList.add('is-loaded');
+    };
+
+    if (viewerEl) {
+      if ((viewerEl as unknown as { loaded?: boolean }).loaded) {
+        markLoaded();
+      } else {
+        viewerEl.addEventListener(
+          'load',
+          () => {
+            markLoaded();
+            if (this.currentMaterial !== 'original') {
+              this.applyMaterialToModel(this.currentMaterial);
+            }
+          },
+          { once: true }
+        );
+        viewerEl.addEventListener('error', markLoaded, { once: true });
       }
-    });
+    }
   }
 
   public setMaterialMode(mode: MaterialPreviewMode): void {

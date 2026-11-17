@@ -898,6 +898,89 @@ header p {
   background-color: #8c6d48;
 }
 
+.viewer-stage {
+  position: relative;
+  width: 100%;
+  height: 440px;
+  min-height: 340px;
+  border-radius: var(--radius-control);
+  overflow: hidden;
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-color);
+  box-shadow: inset 0 2px 6px rgba(26, 22, 19, 0.04);
+}
+
+.viewer-stage model-viewer {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.viewer-loading-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--surface-card);
+  z-index: 5;
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.3s var(--ease-inertia),
+    visibility 0.3s var(--ease-inertia);
+  pointer-events: none;
+}
+
+.viewer-loading-overlay.is-loaded {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.viewer-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 24px;
+  text-align: center;
+}
+
+.viewer-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(186, 83, 34, 0.18);
+  border-top-color: var(--primary-color);
+  border-radius: 50%;
+  animation: viewer-spin 0.85s linear infinite;
+}
+
+@keyframes viewer-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.viewer-loading-title {
+  font-size: 0.98rem;
+  font-weight: 600;
+  color: var(--text-color);
+  margin: 0;
+}
+
+.viewer-loading-sub {
+  font-size: 0.84rem;
+  color: var(--text-secondary);
+  margin: 0;
+}
+
 model-viewer {
   width: 100%;
   height: 440px;
@@ -1050,6 +1133,7 @@ model-viewer.mat-bronze {
     opacity: 1;
     transform: scale(1);
   }
+
   50% {
     opacity: 0.35;
     transform: scale(0.8);
@@ -1065,6 +1149,7 @@ model-viewer.mat-bronze {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -1894,6 +1979,7 @@ textarea:focus-visible,
     padding: 20px 14px;
   }
 
+  .viewer-stage,
   model-viewer {
     height: 320px;
     min-height: 280px;

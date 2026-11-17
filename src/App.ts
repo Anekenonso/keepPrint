@@ -285,9 +285,16 @@ export class App {
     const viewerMount = parent.querySelector<HTMLElement>('#viewer-mount');
     const downloadMount = parent.querySelector<HTMLElement>('#download-mount');
 
+    const posterUrl =
+      matchingExample?.thumbnailUrl ||
+      (this.lastInput?.images && this.lastInput.images.length > 0
+        ? this.lastInput.images[0].dataUrl
+        : undefined);
+
     if (viewerMount && this.currentJob) {
       const viewer = new ViewerComponent(viewerMount, {
         glbUrl: this.currentJob.retopoGlbUrl || this.currentJob.glbUrl,
+        posterUrl,
         altText: 'Interactive 3D model of your family heirloom',
         checkWebGL: this.options.checkWebGL,
       });
@@ -326,6 +333,7 @@ export class App {
     if (!stepContainer) return;
 
     const progress = new ProgressComponent(stepContainer, {
+      qualityMode: input.qualityMode,
       onCancel: () => {
         this.abortController?.abort();
         this.state = 'upload';
@@ -369,7 +377,7 @@ export class App {
         },
         onModelReady: (model) => {
           if (this.abortController?.signal.aborted) return;
-          // Fast Turbo: Immediately display the interactive 3D model in ~60s!
+          // Fast Turbo: Immediately display the interactive 3D model as soon as mesh is ready
           this.currentJob = {
             id: String(model.taskId),
             status: 'succeeded',

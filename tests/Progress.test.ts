@@ -53,6 +53,24 @@ describe('TS-07: Progress Component', () => {
     expect(container.querySelectorAll('.step-completed')).toHaveLength(4);
   });
 
+  it('renders mode-aware timing hint for Turbo (Usually 1–3 minutes)', () => {
+    const progress = new ProgressComponent(container, { qualityMode: 'turbo' });
+    progress.render();
+
+    const hint = container.querySelector('.progress-hint');
+    expect(hint?.textContent).toContain('Fast mode usually takes 1–3 minutes');
+    expect(hint?.textContent).not.toContain('25–45 seconds');
+  });
+
+  it('renders mode-aware timing hint for Ultra (Usually 5–8 minutes)', () => {
+    const progress = new ProgressComponent(container, { qualityMode: 'ultra' });
+    progress.render();
+
+    const hint = container.querySelector('.progress-hint');
+    expect(hint?.textContent).toContain('Detailed mode usually takes 5–8 minutes');
+    expect(hint?.textContent).not.toContain('Fast mode');
+  });
+
   it('shows user-facing error state and retry button on failure', () => {
     const onRetry = vi.fn();
     const progress = new ProgressComponent(container, { onRetry });

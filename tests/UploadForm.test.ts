@@ -321,6 +321,13 @@ describe('TS-06: UploadForm Component', () => {
       expect(turboRadio.checked).toBe(true);
       expect(ultraRadio.checked).toBe(false);
       expect(form.getQualityMode()).toBe('turbo');
+
+      // Verify honest, calibrated timing copy (no ~60s or ~3-4 min claims)
+      expect(container.textContent).toContain('Usually 1–3 minutes');
+      expect(container.textContent).toContain('Usually 5–8 minutes');
+      expect(container.textContent).not.toContain('~60s');
+      expect(container.textContent).not.toContain('~3–4 min');
+      expect(container.textContent).not.toContain('Instant');
     });
 
     it('allows toggling quality mode to ultra and includes it in submitted payload', () => {

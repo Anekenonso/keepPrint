@@ -1,3 +1,5 @@
+import type { QualityMode } from '../lib/types';
+
 export type ProgressStage = 'upload' | 'generate' | 'retopo' | 'export' | 'complete';
 
 export interface ProgressStepInfo {
@@ -13,6 +15,7 @@ export const PROGRESS_STEPS: ProgressStepInfo[] = [
 ];
 
 export interface ProgressComponentOptions {
+  qualityMode?: QualityMode;
   onCancel?: () => void;
   onRetry?: () => void;
 }
@@ -20,6 +23,7 @@ export interface ProgressComponentOptions {
 export class ProgressComponent {
   private container: HTMLElement;
   private options: ProgressComponentOptions;
+  private qualityMode: QualityMode;
   private currentStage: ProgressStage = 'upload';
   private currentMessage: string = 'Preparing heirloom data...';
   private errorMessage: string | null = null;
@@ -29,6 +33,7 @@ export class ProgressComponent {
   constructor(container: HTMLElement, options?: ProgressComponentOptions) {
     this.container = container;
     this.options = options || {};
+    this.qualityMode = options?.qualityMode || 'turbo';
   }
 
   public render(): void {
@@ -90,7 +95,11 @@ export class ProgressComponent {
           </div>
           <div class="progress-hint">
             <span class="hint-tag">Status</span>
-            <span>Synthesizing a watertight 3D heirloom mesh reconstructs volumetric geometry on cloud GPUs. Fast mode completes in approximately <strong>25–45 seconds</strong>. Please keep this tab active.</span>
+            <span>Synthesizing a watertight 3D heirloom mesh reconstructs volumetric geometry on cloud GPUs. ${
+              this.qualityMode === 'ultra'
+                ? 'Detailed mode usually takes <strong>5–8 minutes</strong> with multi-pass retopology.'
+                : 'Fast mode usually takes <strong>1–3 minutes</strong>.'
+            } Please keep this tab active.</span>
           </div>
         `
             : `

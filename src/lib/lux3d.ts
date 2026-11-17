@@ -382,7 +382,7 @@ export async function generate3D(
   const isTurbo = input.qualityMode !== 'ultra';
   const modelVersion = isTurbo ? 'G1-Turbo' : 'G1';
   // In Turbo mode, the mesh is already generated with targeted faceCount (80k),
-  // so we skip the redundant retopology step unless explicitly forced, saving 30-60s!
+  // so we skip the redundant retopology step unless explicitly forced
   const enableRetopo = options?.enableRetopo ?? (isTurbo ? false : true);
   const enableExport = options?.enableExport ?? true;
 
