@@ -45,11 +45,12 @@ export class DownloadPanel {
           <div class="readiness-header">
             <h4>Print Readiness</h4>
             <span class="readiness-badge ${readiness === 'good' ? 'badge-good' : 'badge-attention'}">
-              ${readiness === 'good' ? '● Good' : '▲ Needs attention'}
+              <span class="badge-dot" aria-hidden="true"></span>
+              ${readiness === 'good' ? 'Good' : 'Needs attention'}
             </span>
           </div>
           <ul class="readiness-notes">
-            ${notes.map((note) => `<li>${note}</li>`).join('')}
+            ${notes.map((note) => `<li><svg class="note-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${note}</span></li>`).join('')}
           </ul>
         </div>
 

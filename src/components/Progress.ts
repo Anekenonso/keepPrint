@@ -74,19 +74,23 @@ export class ProgressComponent {
                 : isCurrent
                   ? 'step-active'
                   : 'step-pending';
-              const icon = isPast ? '✓' : isCurrent ? '●' : '○';
+              const iconHtml = isPast
+                ? `<svg class="step-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>`
+                : isCurrent
+                  ? `<span class="step-indicator-dot active" aria-hidden="true"></span>`
+                  : `<span class="step-indicator-dot pending" aria-hidden="true"></span>`;
 
               return `
                 <div class="step-item ${stateClass}" data-step="${step.id}">
-                  <span class="step-icon">${icon}</span>
+                  <span class="step-icon">${iconHtml}</span>
                   <span class="step-label">${step.label}</span>
                 </div>
               `;
             }).join('')}
           </div>
           <div class="progress-hint">
-            <span class="hint-tag">Note</span>
-            <span>Synthesizing a watertight 3D heirloom mesh from multi-angle photos involves deep volumetric reconstruction on Aholo's cloud GPUs. This typically takes <strong>6–12 minutes</strong> depending on model complexity and queue depth. Please keep this tab active.</span>
+            <span class="hint-tag">Status</span>
+            <span>Synthesizing a watertight 3D heirloom mesh reconstructs volumetric geometry on cloud GPUs. Fast mode completes in approximately <strong>25–45 seconds</strong>. Please keep this tab active.</span>
           </div>
         `
             : `

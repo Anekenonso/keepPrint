@@ -60,7 +60,7 @@ export class UploadForm {
             <div class="drop-zone-icon" aria-hidden="true">
               <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </div>
-            <p class="drop-zone-prompt"><strong>Click or drag 1–4 photos here</strong></p>
+            <p class="drop-zone-prompt">Click or drag 1–4 photos here</p>
             <p class="drop-zone-hint">Clear, well-lit photos work best (JPEG, PNG, WebP up to 10MB each)</p>
             <input
               type="file"
@@ -113,10 +113,13 @@ export class UploadForm {
               />
               <div class="quality-card-content">
                 <div class="quality-title-row">
-                  <span class="quality-badge fast">⚡ Fast Turbo</span>
+                  <span class="quality-badge fast">
+                    <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                    Fast (Turbo)
+                  </span>
                   <span class="quality-time">~25s</span>
                 </div>
-                <p class="quality-desc">Recommended for 3D printing. Ultra-fast turnaround with 80k face mesh budget.</p>
+                <p class="quality-desc">Recommended for 3D printing with 80k face mesh budget.</p>
               </div>
             </label>
             <label class="quality-card ${this.qualityMode === 'ultra' ? 'selected' : ''}" for="quality-ultra">
@@ -129,7 +132,10 @@ export class UploadForm {
               />
               <div class="quality-card-content">
                 <div class="quality-title-row">
-                  <span class="quality-badge ultra">💎 Ultra Detail</span>
+                  <span class="quality-badge ultra">
+                    <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
+                    Detailed (Ultra)
+                  </span>
                   <span class="quality-time">~90s</span>
                 </div>
                 <p class="quality-desc">Full G1 cloud pipeline with multi-pass retopology for intricate carvings.</p>
@@ -176,7 +182,7 @@ export class UploadForm {
       this.images.length < MAX_IMAGE_COUNT
         ? `
         <div class="add-more-card" id="add-more-btn" role="button" tabindex="0" title="Add another angle photo">
-          <span class="add-more-icon">+</span>
+          <svg class="add-more-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
           <span class="add-more-text">Add Angle (${this.images.length + 1}/4)</span>
         </div>
       `

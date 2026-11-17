@@ -38,7 +38,7 @@ export class PrintGuideModal {
             <p class="modal-subtitle">Practical slicer settings to ensure your replica looks, feels, and endures like the original.</p>
           </div>
           <button type="button" class="btn-close-modal" id="modal-close-icon-btn" aria-label="Close guide">
-            ✕
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
         </div>
 

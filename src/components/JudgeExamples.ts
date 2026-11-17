@@ -69,7 +69,7 @@ export class JudgeExamples {
               data-id="${ex.id}"
               title="Pre-populate the upload form with this artifact photo"
             >
-              Load Photo into Form &rarr;
+              Load Photo into Form
             </button>
             <button
               type="button"
