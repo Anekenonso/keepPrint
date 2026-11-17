@@ -68,6 +68,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         img: 'data:image/jpeg;base64,sample',
         version: 'G1-Turbo',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+        outputFormat: ['zip', 'glb'],
       });
     });
 
@@ -86,6 +87,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         img: 'data:image/jpeg;base64,sample',
         version: 'G1',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+        outputFormat: ['zip', 'glb'],
       });
     });
 
@@ -105,6 +107,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         prompt: 'Traditional brass drinking vessel',
         version: 'G1-Turbo',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+        outputFormat: ['zip', 'glb'],
       });
     });
 
@@ -451,10 +454,33 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         imgs: ['data:img1', 'data:img2', 'data:img3'],
         version: 'G1-Turbo',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+        outputFormat: ['zip', 'glb'],
       });
       expect(
         progressMessages.some((msg) => msg.includes('Uploading 3 heirloom photos to Lux3D'))
       ).toBe(true);
+    });
+
+    it('throws descriptive error if pipeline returns no GLB model file', async () => {
+      const mockClient = {
+        imgTo3d: { create: vi.fn().mockResolvedValue(99991) },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 99991,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [{ content: 'https://cdn.example.com/archive.zip' }],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const input: GenerationInput = {
+        sourceType: 'image',
+        images: [{ name: 'test.jpg', size: 100, type: 'image/jpeg', dataUrl: 'data:img' }],
+      };
+
+      await expect(generate3D(input, { client: mockClient })).rejects.toThrow(
+        /no interactive 3D model \(GLB\) was returned/
+      );
     });
 
     it('uses G1 model and enables retopology when qualityMode is ultra', async () => {
@@ -499,6 +525,7 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
         img: 'data:img',
         version: 'G1',
         faceCount: DEFAULT_PRINTABLE_FACE_BUDGET,
+        outputFormat: ['zip', 'glb'],
       });
       expect(result.retopoGlbUrl).toBe('https://cdn.example.com/retopo.glb');
     });

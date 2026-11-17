@@ -175,18 +175,30 @@ export function extractModelUrls(outputs: TaskOutput[] | undefined): {
 
 export async function createImageTo3dTask(
   params:
-    | { img: string; faceCount?: number; version?: 'G1' | 'G1-Turbo' }
-    | { imgs: string[]; faceCount?: number; version?: 'G1' | 'G1-Turbo' },
+    | {
+        img: string;
+        faceCount?: number;
+        version?: 'G1' | 'G1-Turbo';
+        outputFormat?: ('zip' | 'glb' | 'ply')[];
+      }
+    | {
+        imgs: string[];
+        faceCount?: number;
+        version?: 'G1' | 'G1-Turbo';
+        outputFormat?: ('zip' | 'glb' | 'ply')[];
+      },
   client: Lux3dClient
 ): Promise<number> {
   try {
     const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
     const version = params.version ?? 'G1-Turbo';
+    const outputFormat = params.outputFormat ?? ['zip', 'glb'];
     if ('imgs' in params && params.imgs.length > 1) {
       return await client.imgTo3d.create({
         imgs: params.imgs,
         version,
         faceCount,
+        outputFormat,
       });
     }
 
@@ -195,6 +207,7 @@ export async function createImageTo3dTask(
       img: singleImg,
       version,
       faceCount,
+      outputFormat,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown network error';
@@ -203,16 +216,23 @@ export async function createImageTo3dTask(
 }
 
 export async function createTextTo3dTask(
-  params: { prompt: string; faceCount?: number; version?: 'G1' | 'G1-Turbo' },
+  params: {
+    prompt: string;
+    faceCount?: number;
+    version?: 'G1' | 'G1-Turbo';
+    outputFormat?: ('zip' | 'glb' | 'ply')[];
+  },
   client: Lux3dClient
 ): Promise<number> {
   try {
     const faceCount = params.faceCount ?? DEFAULT_PRINTABLE_FACE_BUDGET;
     const version = params.version ?? 'G1-Turbo';
+    const outputFormat = params.outputFormat ?? ['zip', 'glb'];
     return await client.textTo3d.create({
       prompt: params.prompt,
       version,
       faceCount,
+      outputFormat,
     });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : 'Unknown network error';
@@ -390,6 +410,13 @@ export async function generate3D(
 
   options?.onProgress?.('Finalizing 3D model assets...');
   const urls = extractModelUrls(taskResult.outputs);
+
+  if (!urls.glbUrl) {
+    throw new Error(
+      '3D mesh generation completed, but no interactive 3D model (GLB) was returned by the pipeline. Please retry.'
+    );
+  }
+
   let retopoGlbUrl: string | undefined;
 
   if (enableRetopo && urls.glbUrl) {

@@ -357,7 +357,7 @@ export class App {
 
       const result = await generateFn(input, {
         client: this.options.client,
-        enableRetopo: true,
+        enableRetopo: input.qualityMode === 'ultra',
         enableExport: true,
         pollOptions: {
           signal: this.abortController.signal,
