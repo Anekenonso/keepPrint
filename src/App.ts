@@ -58,10 +58,12 @@ export class App {
       <header>
         <div class="header-inner">
           <div class="brand">
-            <div class="brand-title-row">
-              <img src="/favicon.svg" alt="Keepprint logo" class="brand-logo" width="36" height="36" />
-              <h1>Keepprint</h1>
-            </div>
+            <a href="/" class="brand-link" id="brand-logo-link" aria-label="Keepprint Home - Return to homepage">
+              <div class="brand-title-row">
+                <img src="/favicon.svg" alt="Keepprint logo" class="brand-logo" width="36" height="36" />
+                <h1>Keepprint</h1>
+              </div>
+            </a>
             <p>Keep the original safe. Print a copy you can hold.</p>
           </div>
           <button type="button" class="btn-guide-header" id="header-guide-btn" title="View 3D Printing & Slicing Guide">
@@ -76,7 +78,9 @@ export class App {
       <footer class="app-footer" role="contentinfo">
         <div class="footer-inner">
           <div class="footer-left">
-            <span class="footer-brand-name">Keepprint</span>
+            <a href="/" class="footer-brand-link" id="footer-logo-link" aria-label="Keepprint Home - Return to homepage">
+              <span class="footer-brand-name">Keepprint</span>
+            </a>
             <span class="footer-sep">/</span>
             <span class="footer-engine">Aholo Lux3D G1</span>
           </div>
@@ -90,6 +94,20 @@ export class App {
         </div>
       </footer>
     `;
+
+    const brandLogoLink = this.container.querySelector<HTMLAnchorElement>('#brand-logo-link');
+    brandLogoLink?.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      this.reset();
+    });
+
+    const footerLogoLink = this.container.querySelector<HTMLAnchorElement>('#footer-logo-link');
+    footerLogoLink?.addEventListener('click', (e) => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey) return;
+      e.preventDefault();
+      this.reset();
+    });
 
     const headerGuideBtn = this.container.querySelector<HTMLButtonElement>('#header-guide-btn');
     headerGuideBtn?.addEventListener('click', () => {
@@ -474,6 +492,9 @@ export class App {
   }
 
   public reset(): void {
+    if (this.abortController) {
+      this.abortController.abort();
+    }
     this.state = 'upload';
     this.currentJob = null;
     this.lastInput = null;

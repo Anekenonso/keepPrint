@@ -100,6 +100,27 @@ header {
   text-align: left;
 }
 
+.brand-link {
+  text-decoration: none;
+  color: inherit;
+  display: inline-block;
+  cursor: pointer;
+  border-radius: var(--radius-control);
+  transition:
+    opacity var(--duration-quick) ease,
+    transform var(--duration-quick) ease;
+}
+
+.brand-link:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.brand-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 4px;
+}
+
 .brand-title-row {
   display: flex;
   align-items: center;
@@ -1668,6 +1689,22 @@ textarea:focus-visible,
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.footer-brand-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.footer-brand-link:hover {
+  color: var(--primary-color);
+}
+
+.footer-brand-link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .footer-brand-name {
