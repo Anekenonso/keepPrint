@@ -117,9 +117,9 @@ export class UploadForm {
                     <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                     Fast (Turbo)
                   </span>
-                  <span class="quality-time">~25s</span>
+                  <span class="quality-time">~60s (3D)</span>
                 </div>
-                <p class="quality-desc">Recommended for 3D printing with 80k face mesh budget.</p>
+                <p class="quality-desc">Instant 3D model in ~60s. STL &amp; 3MF slice files finish in background.</p>
               </div>
             </label>
             <label class="quality-card ${this.qualityMode === 'ultra' ? 'selected' : ''}" for="quality-ultra">
@@ -136,7 +136,7 @@ export class UploadForm {
                     <svg class="quality-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/></svg>
                     Detailed (Ultra)
                   </span>
-                  <span class="quality-time">~90s</span>
+                  <span class="quality-time">~3–4 min</span>
                 </div>
                 <p class="quality-desc">Full G1 cloud pipeline with multi-pass retopology for intricate carvings.</p>
               </div>
@@ -326,13 +326,94 @@ export class UploadForm {
         new Promise<ImageInputItem>((resolve) => {
           const reader = new FileReader();
           reader.onload = () => {
-            resolve({
-              name: file.name,
-              size: file.size,
-              type: file.type,
-              dataUrl: reader.result as string,
-              file,
-            });
+            const dataUrl = reader.result as string;
+            // Downscale oversized camera photos (>1600px) client-side to save upload bandwidth
+            if (
+              typeof Image === 'undefined' ||
+              typeof document === 'undefined' ||
+              file.size < 600 * 1024
+            ) {
+              resolve({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                dataUrl,
+                file,
+              });
+              return;
+            }
+
+            const img = new Image();
+            img.onload = () => {
+              const MAX_DIM = 1600;
+              let { width, height } = img;
+              if (width <= MAX_DIM && height <= MAX_DIM) {
+                resolve({
+                  name: file.name,
+                  size: file.size,
+                  type: file.type,
+                  dataUrl,
+                  file,
+                });
+                return;
+              }
+
+              if (width > height) {
+                if (width > MAX_DIM) {
+                  height = Math.round((height * MAX_DIM) / width);
+                  width = MAX_DIM;
+                }
+              } else {
+                if (height > MAX_DIM) {
+                  width = Math.round((width * MAX_DIM) / height);
+                  height = MAX_DIM;
+                }
+              }
+
+              try {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) {
+                  resolve({
+                    name: file.name,
+                    size: file.size,
+                    type: file.type,
+                    dataUrl,
+                    file,
+                  });
+                  return;
+                }
+                ctx.drawImage(img, 0, 0, width, height);
+                const compressed = canvas.toDataURL('image/jpeg', 0.88);
+                resolve({
+                  name: file.name,
+                  size: compressed.length,
+                  type: 'image/jpeg',
+                  dataUrl: compressed,
+                  file,
+                });
+              } catch {
+                resolve({
+                  name: file.name,
+                  size: file.size,
+                  type: file.type,
+                  dataUrl,
+                  file,
+                });
+              }
+            };
+            img.onerror = () => {
+              resolve({
+                name: file.name,
+                size: file.size,
+                type: file.type,
+                dataUrl,
+                file,
+              });
+            };
+            img.src = dataUrl;
           };
           reader.readAsDataURL(file);
         })

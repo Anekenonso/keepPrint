@@ -89,6 +89,37 @@ describe('TS-09: DownloadPanel Component', () => {
     expect(disabledStl.textContent).toContain('Unavailable');
   });
 
+  it('renders preparing state buttons when isPreparing is true and stlUrl is absent', () => {
+    const panel = new DownloadPanel(container, {
+      urls: { glbUrl: 'https://cdn.example.com/model.glb' },
+      isPreparing: true,
+    });
+    panel.render();
+
+    const badgeEl = container.querySelector('.readiness-badge');
+    expect(badgeEl?.classList.contains('badge-preparing')).toBe(true);
+    expect(badgeEl?.textContent).toContain('Preparing Slicer Files');
+
+    const stlBtn = container.querySelector<HTMLButtonElement>('#download-stl-btn')!;
+    expect(stlBtn.disabled).toBe(true);
+    expect(stlBtn.textContent).toContain('Preparing STL');
+
+    const threemfBtn = container.querySelector<HTMLButtonElement>('#download-3mf-btn')!;
+    expect(threemfBtn.disabled).toBe(true);
+    expect(threemfBtn.textContent).toContain('Preparing 3MF');
+
+    // Update URLs when background export finishes
+    panel.updateUrls({
+      stlUrl: 'https://cdn.example.com/model.stl',
+      threemfUrl: 'https://cdn.example.com/model.3mf',
+      glbUrl: 'https://cdn.example.com/model.glb',
+    });
+
+    const readyStl = container.querySelector<HTMLAnchorElement>('#download-stl-btn')!;
+    expect(readyStl.tagName.toLowerCase()).toBe('a');
+    expect(readyStl.getAttribute('href')).toBe('https://cdn.example.com/model.stl');
+  });
+
   it('triggers onReset when create another button is clicked', () => {
     const onReset = vi.fn();
     const panel = new DownloadPanel(container, {

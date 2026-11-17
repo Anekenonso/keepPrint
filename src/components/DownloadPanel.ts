@@ -13,6 +13,7 @@ export interface DownloadPanelOptions {
   urls: DownloadUrls;
   readiness?: PrintReadiness;
   readinessNotes?: string[];
+  isPreparing?: boolean;
   onDownload?: (format: 'stl' | '3mf' | 'glb', url: string) => void;
   onReset?: () => void;
   onOpenPrintGuide?: () => void;
@@ -38,19 +39,36 @@ export class DownloadPanel {
 
     const readiness: PrintReadiness = this.options.readiness || computedReport.readiness;
     const notes = this.options.readinessNotes || computedReport.notes;
+    const isPreparing = Boolean(this.options.isPreparing && !stlUrl);
 
     this.container.innerHTML = `
       <div class="download-panel" id="download-panel">
         <div class="readiness-section">
           <div class="readiness-header">
             <h4>Print Readiness</h4>
-            <span class="readiness-badge ${readiness === 'good' ? 'badge-good' : 'badge-attention'}">
-              <span class="badge-dot" aria-hidden="true"></span>
-              ${readiness === 'good' ? 'Good' : 'Needs attention'}
+            <span class="readiness-badge ${
+              isPreparing
+                ? 'badge-preparing'
+                : readiness === 'good'
+                  ? 'badge-good'
+                  : 'badge-attention'
+            }">
+              <span class="badge-dot ${isPreparing ? 'pulse' : ''}" aria-hidden="true"></span>
+              ${isPreparing ? 'Preparing Slicer Files...' : readiness === 'good' ? 'Good' : 'Needs attention'}
             </span>
           </div>
           <ul class="readiness-notes">
-            ${notes.map((note) => `<li><svg class="note-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${note}</span></li>`).join('')}
+            ${
+              isPreparing
+                ? `<li><svg class="spinner-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Converting 80k mesh into manifold STL and 3MF in background...</span></li>
+                   <li><svg class="note-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Full-color 3D preview is active and interactive above.</span></li>`
+                : notes
+                    .map(
+                      (note) =>
+                        `<li><svg class="note-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>${note}</span></li>`
+                    )
+                    .join('')
+            }
           </ul>
         </div>
 
@@ -69,7 +87,14 @@ export class DownloadPanel {
               <span>Download STL (Print-Ready)</span>
             </a>
           `
-              : `
+              : isPreparing
+                ? `
+            <button class="download-btn btn-preparing" disabled id="download-stl-btn">
+              <svg class="spinner-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <span>Preparing STL (Print-Ready)...</span>
+            </button>
+          `
+                : `
             <button class="download-btn btn-disabled" disabled id="download-stl-btn">
               STL Unavailable
             </button>
@@ -90,7 +115,14 @@ export class DownloadPanel {
               <span>Download 3MF (Color & Slices)</span>
             </a>
           `
-              : `
+              : isPreparing
+                ? `
+            <button class="download-btn btn-preparing" disabled id="download-3mf-btn">
+              <svg class="spinner-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              <span>Preparing 3MF (Color & Slices)...</span>
+            </button>
+          `
+                : `
             <button class="download-btn btn-disabled" disabled id="download-3mf-btn">
               3MF Unavailable
             </button>
@@ -168,10 +200,15 @@ export class DownloadPanel {
     });
   }
 
-  public updateUrls(urls: DownloadUrls, readiness?: PrintReadiness): void {
+  public updateUrls(urls: DownloadUrls, readiness?: PrintReadiness, isPreparing?: boolean): void {
     this.options.urls = urls;
     if (readiness) {
       this.options.readiness = readiness;
+    }
+    if (typeof isPreparing === 'boolean') {
+      this.options.isPreparing = isPreparing;
+    } else if (urls.stlUrl || urls.threemfUrl) {
+      this.options.isPreparing = false;
     }
     this.render();
   }

@@ -370,6 +370,7 @@ export async function generate3D(
     enableExport?: boolean;
     pollOptions?: WaitForLux3dTaskOptions;
     onProgress?: (message: string) => void;
+    onModelReady?: (model: { taskId: number; glbUrl: string; retopoGlbUrl?: string }) => void;
   }
 ): Promise<GenerationResult> {
   const validation = validateGenerationInput(input);
@@ -434,12 +435,20 @@ export async function generate3D(
     }
   }
 
+  // Model is ready for interactive 3D inspection
+  const activeGlb = retopoGlbUrl || urls.glbUrl;
+  options?.onModelReady?.({
+    taskId,
+    glbUrl: urls.glbUrl,
+    retopoGlbUrl: activeGlb,
+  });
+
   let stlUrl = urls.stlUrl;
   let threemfUrl = urls.threemfUrl;
   const exportTarget = retopoGlbUrl || urls.glbUrl;
 
   if (enableExport && exportTarget && (!stlUrl || !threemfUrl)) {
-    options?.onProgress?.('Exporting printable STL and 3MF files...');
+    options?.onProgress?.('Exporting printable STL and 3MF files in background...');
     try {
       const exportResult = await exportPrintFormats(exportTarget, client, options?.pollOptions);
       if (exportResult.stlUrl) {

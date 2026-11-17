@@ -295,13 +295,16 @@ export class App {
     }
 
     if (downloadMount && this.currentJob) {
+      const hasPrintFiles = Boolean(this.currentJob.stlUrl || this.currentJob.threemfUrl);
+      const isPreparing = !hasPrintFiles && !matchingExample;
       const panel = new DownloadPanel(downloadMount, {
         urls: {
           stlUrl: this.currentJob.stlUrl,
           threemfUrl: this.currentJob.threemfUrl,
           glbUrl: this.currentJob.glbUrl,
         },
-        readiness: this.currentJob.stlUrl || this.currentJob.threemfUrl ? 'good' : 'attention',
+        readiness: hasPrintFiles ? 'good' : isPreparing ? 'good' : 'attention',
+        isPreparing,
         onReset: () => {
           this.reset();
         },
@@ -355,6 +358,8 @@ export class App {
     try {
       progress.updateStage('upload', 'Sending heirloom data to Lux3D...');
 
+      let downloadPanelInstance: DownloadPanel | null = null;
+
       const result = await generateFn(input, {
         client: this.options.client,
         enableRetopo: input.qualityMode === 'ultra',
@@ -362,7 +367,36 @@ export class App {
         pollOptions: {
           signal: this.abortController.signal,
         },
+        onModelReady: (model) => {
+          if (this.abortController?.signal.aborted) return;
+          // Fast Turbo: Immediately display the interactive 3D model in ~60s!
+          this.currentJob = {
+            id: String(model.taskId),
+            status: 'succeeded',
+            sourceType: input.sourceType,
+            glbUrl: model.glbUrl,
+            retopoGlbUrl: model.retopoGlbUrl,
+            createdAt: Date.now(),
+          };
+          saveLastJob(this.currentJob, { storage: this.options.storage });
+          this.state = 'result';
+          this.render();
+
+          const downloadMount = this.container.querySelector<HTMLElement>('#download-mount');
+          if (downloadMount) {
+            downloadPanelInstance = new DownloadPanel(downloadMount, {
+              urls: { glbUrl: model.glbUrl },
+              isPreparing: true,
+              onReset: () => this.reset(),
+              onOpenPrintGuide: () => this.openPrintGuide(),
+            });
+            downloadPanelInstance.render();
+          }
+        },
         onProgress: (stageMessage: string) => {
+          if (this.getState() === 'result') {
+            return;
+          }
           const lower = stageMessage.toLowerCase();
           let stage: ProgressStage = 'generate';
           if (
@@ -399,15 +433,32 @@ export class App {
 
       saveLastJob(this.currentJob, { storage: this.options.storage });
 
-      progress.updateStage('complete', 'Your model is ready.');
+      if (this.getState() === 'result') {
+        const downloadMount = this.container.querySelector<HTMLElement>('#download-mount');
+        if (downloadMount) {
+          const panel = new DownloadPanel(downloadMount, {
+            urls: {
+              stlUrl: result.stlUrl,
+              threemfUrl: result.threemfUrl,
+              glbUrl: result.glbUrl,
+            },
+            readiness: result.stlUrl || result.threemfUrl ? 'good' : 'attention',
+            onReset: () => this.reset(),
+            onOpenPrintGuide: () => this.openPrintGuide(),
+          });
+          panel.render();
+        }
+      } else {
+        progress.updateStage('complete', 'Your model is ready.');
 
-      const delay = this.options.transitionDelayMs ?? 100;
-      if (delay > 0) {
-        await new Promise((resolve) => setTimeout(resolve, delay));
+        const delay = this.options.transitionDelayMs ?? 100;
+        if (delay > 0) {
+          await new Promise((resolve) => setTimeout(resolve, delay));
+        }
+
+        this.state = 'result';
+        this.render();
       }
-
-      this.state = 'result';
-      this.render();
     } catch (err: unknown) {
       if (this.abortController.signal.aborted) {
         return;

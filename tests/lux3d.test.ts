@@ -483,6 +483,40 @@ describe('TS-02 & TS-03: Lux3D Client Wrapper', () => {
       );
     });
 
+    it('emits onModelReady callback as soon as GLB is available', async () => {
+      const mockClient = {
+        imgTo3d: { create: vi.fn().mockResolvedValue(10101) },
+        tasks: {
+          waitFor: vi.fn().mockResolvedValue({
+            taskId: 10101,
+            status: LUX3D_STATUS_SUCCESS,
+            outputs: [{ content: 'https://cdn.example.com/fast.glb' }],
+          }),
+        },
+      } as unknown as Lux3dClient;
+
+      const onModelReady = vi.fn();
+      const input: GenerationInput = {
+        sourceType: 'image',
+        images: [{ name: 'test.jpg', size: 100, type: 'image/jpeg', dataUrl: 'data:img' }],
+      };
+
+      const result = await generate3D(input, {
+        client: mockClient,
+        enableRetopo: false,
+        enableExport: false,
+        onModelReady,
+      });
+
+      expect(result.status).toBe('succeeded');
+      expect(onModelReady).toHaveBeenCalledTimes(1);
+      expect(onModelReady).toHaveBeenCalledWith({
+        taskId: 10101,
+        glbUrl: 'https://cdn.example.com/fast.glb',
+        retopoGlbUrl: 'https://cdn.example.com/fast.glb',
+      });
+    });
+
     it('uses G1 model and enables retopology when qualityMode is ultra', async () => {
       const mockClient = {
         imgTo3d: {
