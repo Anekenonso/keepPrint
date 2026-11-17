@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { proxyToAholo } from '../api/_proxy';
+import globalHandler from '../api/aholo-global';
+import cnHandler from '../api/aholo-cn';
 
 describe('Serverless Backend Proxy (api/_proxy.ts)', () => {
   const originalEnv = process.env.AHOLO_API_KEY;
@@ -63,7 +65,7 @@ describe('Serverless Backend Proxy (api/_proxy.ts)', () => {
     });
 
     const request = new Request(
-      'https://keepprint.vercel.app/api/aholo-global/v1/3d/generation?foo=bar',
+      'https://keepprint.vercel.app/api/aholo-global/global/lux3d/v1/generate/img-to-3d/task/create',
       {
         method: 'POST',
         headers: {
@@ -74,10 +76,10 @@ describe('Serverless Backend Proxy (api/_proxy.ts)', () => {
       }
     );
 
-    const response = await proxyToAholo(request, 'api.aholo.ai', '/api/aholo-global');
+    const response = await globalHandler(request);
 
     expect(response.status).toBe(200);
-    expect(capturedUrl).toBe('https://api.aholo.ai/v1/3d/generation?foo=bar');
+    expect(capturedUrl).toBe('https://api.aholo.ai/global/lux3d/v1/generate/img-to-3d/task/create');
     expect(capturedMethod).toBe('POST');
     // Verifies secret key replacement:
     expect(capturedHeaders?.get('Authorization')).toBe('Bearer secret-aholo-key-123');
@@ -86,6 +88,32 @@ describe('Serverless Backend Proxy (api/_proxy.ts)', () => {
 
     const json = await response.json();
     expect(json.taskId).toBe(99999);
+  });
+
+  it('routes cn requests to api.aholo.cn via cnHandler', async () => {
+    let capturedUrl = '';
+
+    globalThis.fetch = vi.fn().mockImplementation((url) => {
+      capturedUrl = url.toString();
+      return Promise.resolve(
+        new Response(JSON.stringify({ taskId: 88888, status: 'SUCCESS' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    });
+
+    const request = new Request(
+      'https://keepprint.vercel.app/api/aholo-cn/lux3d/v1/generate/img-to-3d/task/create',
+      {
+        method: 'POST',
+        body: JSON.stringify({ prompt: 'vase' }),
+      }
+    );
+
+    const response = await cnHandler(request);
+    expect(response.status).toBe(200);
+    expect(capturedUrl).toBe('https://api.aholo.cn/lux3d/v1/generate/img-to-3d/task/create');
   });
 
   it('returns status 502 when upstream fetch rejects', async () => {

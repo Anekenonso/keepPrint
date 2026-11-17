@@ -4,7 +4,15 @@
   "cleanUrls": true,
   "rewrites": [
     {
-      "source": "/((?!api/).*)",
+      "source": "/api/aholo-global/:path*",
+      "destination": "/api/aholo-global"
+    },
+    {
+      "source": "/api/aholo-cn/:path*",
+      "destination": "/api/aholo-cn"
+    },
+    {
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

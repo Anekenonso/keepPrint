@@ -1,4 +1,4 @@
-import { proxyToAholo } from '../_proxy';
+import { proxyToAholo } from './_proxy';
 
 export const config = {
   runtime: 'edge',
