@@ -31,6 +31,37 @@ dist-ssr
 # Testing and coverage
 coverage
 
+# Marketing, Pitch Decks, Presentations & Media
+marketing/
+pitch/
+decks/
+presentation/
+presentations/
+slides/
+social/
+recordings/
+demos/
+media/
+promo/
+public/screenshots/
+*.pptx
+*.ppt
+*.key
+*.pdf
+*.mp4
+*.mov
+*.webm
+*.avi
+*.psd
+*.ai
+*.fig
+*pitch*
+*deck*
+*presentation*
+*marketing*
+*social-card*
+*promo*
+
 # Logs
 npm-debug.log*
 yarn-debug.log*

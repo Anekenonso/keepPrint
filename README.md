@@ -108,8 +108,9 @@ keepprint/
 ├── api/                       # Vercel Edge Serverless reverse proxy for secure Aholo API key shielding
 ├── public/
 │   ├── examples/              # High-resolution specimen photography
-│   └── screenshots/           # Pipeline process screenshots and visual documentation
-└── tests/                     # 137 unit, integration, and E2E tests (Vitest)
+│   ├── favicon.svg            # Layered K brand favicon
+│   └── logo.svg               # KeepPrint production brand logo
+└── tests/                     # 139 unit, integration, and E2E tests (Vitest)
 ```
 
 ---
@@ -187,16 +188,16 @@ Both preloaded models include complete, verified cloud generation outputs:
 
 ---
 
-## 11. Evidence & UI Architecture Walkthrough
+## 11. UI Architecture & Workflow Walkthrough
 
-| Phase                        | Description                                                                   | UI Architecture Diagram                                                   |
-| ---------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| **01. Landing & Upload**     | Multi-image drag-and-drop slots with angle badges and heirloom prompt         | ![Landing](public/screenshots/01-landing-upload.svg)                      |
-| **02. Generation Progress**  | 4-stage pipeline tracker with animated progress and cancel option             | ![Progress](public/screenshots/02-generation-progress.svg)                |
-| **03. 3D Viewer & Download** | Interactive 3D model viewer, print-readiness badge, STL/3MF/GLB downloads     | ![Viewer](public/screenshots/03-viewer-and-download.svg)                  |
-| **04. Error & Edge States**  | Graceful error states with actionable user guidance and retry actions         | ![Errors](public/screenshots/04-error-handling.svg)                       |
-| **05. Print Guide Modal**    | Accessible modal covering slicer settings, orientation, infill, and materials | ![Print Guide](public/screenshots/05-print-guide-modal.svg)               |
-| **06. Finish Controls**      | Material preview switcher (Full Color, White Clay, Terracotta, Bronze)        | ![Material Controls](public/screenshots/06-material-preview-controls.svg) |
+| Phase                        | Description                                                                   | Key Workflow Capabilities                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| **01. Landing & Upload**     | Multi-image drag-and-drop slots with angle badges and heirloom prompt         | Single & multi-angle photo upload, descriptive prompt validation, Fast (Turbo) vs Detailed mode |
+| **02. Generation Progress**  | 4-stage pipeline tracker with animated progress and cancel option             | Transparent stage tracking (Upload → Reconstruct → Optimize → Export) with retry controls       |
+| **03. 3D Viewer & Download** | Interactive 3D model viewer, print-readiness badge, STL/3MF/GLB downloads     | Orbit, pan, zoom, auto-rotate inspection, full slicer download bundle with SHA-safe URLs        |
+| **04. Error & Edge States**  | Graceful error states with actionable user guidance and retry actions         | API limits, proxy safety, timeout recovery, and non-destructive retry controls                  |
+| **05. Print Guide Modal**    | Accessible modal covering slicer settings, orientation, infill, and materials | Step-by-step guidance for Bambu Studio, PrusaSlicer, and Cura with zero-support recommendations |
+| **06. Finish Controls**      | Material preview switcher (Full Color, White Clay, Terracotta, Bronze)        | Client-side shader inspection of physical replica material finishes prior to 3D printing        |
 
 ---
 
