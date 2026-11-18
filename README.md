@@ -6,6 +6,9 @@
 
 > Turn a photo or description of a personal family heirloom into a clean, printable 3D model so the original never has to travel or risk damage.
 
+**Live Application**: [https://keep-print.vercel.app](https://keep-print.vercel.app)  
+**GitHub Repository**: [https://github.com/Anekenonso/keepPrint](https://github.com/Anekenonso/keepPrint)
+
 ---
 
 ## 1. Thesis
@@ -168,8 +171,9 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
 
 ## 10. Results & Live Demo
 
-- **Live Demo Shell**: The static production bundle is configured for zero-configuration deployment on Vercel (`vercel.json`) with edge proxies and Netlify (`netlify.toml`).
-- **Smoke Verified**: Ephemeral preview server smoke test (`npm run smoke:serve`) validates the served HTML and Keepprint application shell on a random port.
+- **Live Production Application**: [https://keep-print.vercel.app](https://keep-print.vercel.app)
+- **Deployment Architecture**: Hosted on Vercel with zero-configuration Edge Serverless functions (`/api/aholo-global` & `/api/aholo-cn`) shielding upstream credentials with rate limiting and path allowlisting. Netlify deployment configuration is also provided (`netlify.toml`).
+- **Smoke Verified**: Live production endpoint verified with HTTP 200 OK. Ephemeral preview server smoke test (`npm run smoke:serve`) validates the production bundle on a random port.
 
 ### 10.1 Preloaded Examples for Judge & Hackathon Testing
 
