@@ -91,22 +91,26 @@ keepprint/
 │   ├── main.ts                # Application mount point
 │   ├── App.ts                 # Master state machine, view routing, storage recovery
 │   ├── components/
-│   │   ├── UploadForm.ts      # Multi-image & text prompt form with drag-and-drop
-│   │   ├── Progress.ts        # 4-stage generation progress indicator with cancel/retry
-│   │   ├── Viewer.ts          # Interactive <model-viewer> with 4-material finish preview
+│   │   ├── UploadForm.ts      # Multi-image & text prompt form with drag-and-drop & mode selection
+│   │   ├── Progress.ts        # 4-stage generation progress indicator with mode-aware status
+│   │   ├── Viewer.ts          # Interactive <model-viewer> with loading overlay & 4-material finish preview
 │   │   ├── DownloadPanel.ts   # STL/3MF/GLB download controls + print-readiness badge
-│   │   └── PrintGuideModal.ts # Accessible modal with slicer, infill, and material advice
+│   │   ├── PrintGuideModal.ts # Accessible modal with slicer, infill, and material advice
+│   │   └── JudgeExamples.ts   # Curated specimen cards for instant judge & demo exploration
 │   ├── lib/
-│   │   ├── lux3d.ts           # Aholo Lux3D wrapper (imgTo3d, textTo3d, retopo, export)
+│   │   ├── lux3d.ts           # Aholo Lux3D wrapper (imgTo3d, textTo3d, retopo, export, Turbo/Ultra modes)
 │   │   ├── validation.ts      # Zod validation & print-readiness verification engine
 │   │   ├── storage.ts         # Resilient localStorage job caching for demo continuity
+│   │   ├── examples.ts        # Verified heirloom specimens with precomputed 3D outputs
 │   │   ├── types.ts           # Domain models and job contracts
 │   │   └── shims/             # Browser shims for node:path and node:fs/promises
 │   └── styles/
 │       └── main.css           # Warm heirloom visual design system & responsive layout
+├── api/                       # Vercel Edge Serverless reverse proxy for secure Aholo API key shielding
 ├── public/
+│   ├── examples/              # High-resolution specimen photography
 │   └── screenshots/           # Pipeline process screenshots and visual documentation
-└── tests/                     # 103 unit, integration, and E2E tests (Vitest)
+└── tests/                     # 137 unit, integration, and E2E tests (Vitest)
 ```
 
 ---
@@ -115,11 +119,12 @@ keepprint/
 
 The official `@manycore/aholo-sdk-lux3d` (version 1.10.0) powers the entire 3D synthesis pipeline:
 
-- **`imgTo3d.create`**: Generates 3D models from single or multi-angle image arrays (`images: string[]`) using the high-performance `"turbo"` model type.
-- **`textTo3d.create`**: Generates 3D models from descriptive heirloom prompts and style directives.
+- **`imgTo3d.create`**: Generates 3D models from single or multi-angle image arrays (`images: string[]`) supporting both **Fast Mode (`G1-Turbo`)** for rapid 1–3 minute generation and **Detailed Mode (`G1`)** for 5–8 minute high-fidelity multi-pass geometry.
+- **`textTo3d.create`**: Generates 3D models from descriptive heirloom prompts and style directives with `G1-Turbo` and `G1` version options.
 - **`tasks.waitFor`**: Reliable exponential-backoff polling that tracks task lifecycle transitions from `pending` to `running` to `succeeded` or `failed`.
 - **`retopology.create`**: Enforces strict manifold topology with `targetFaceNum: 80000`, ensuring clean edge flow and eliminating unclosed shells.
 - **`formatConvert.create`**: Asynchronously converts retopologized output into standard additive manufacturing files (`"stl"` and `"3mf"`).
+- **Progressive Preview**: Interactive full-color 3D GLB is surfaced immediately as soon as reconstruction completes, with slicing files (STL & 3MF) continuing to prepare in the background.
 
 ---
 
@@ -138,13 +143,15 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
 ## 8. Real vs. Simulated Boundaries
 
 - **Real in Keepprint**:
-  - Live client-side file upload with MIME type enforcement (JPEG/PNG/WebP) and 10MB size limits.
+  - Live client-side file upload with MIME type enforcement (JPEG/PNG/WebP), 10MB size limits, and smart client-side downscaling (max 1600px, 0.88 JPEG) for fast transmission.
   - Multi-image angle slots (Front, Back, Side, Top/Detail) with dynamic re-indexing.
+  - Generation mode selection: **Fast (`G1-Turbo`)** (usually 1–3 min) vs. **Detailed (`G1`)** (usually 5–8 min).
   - Integration with `@manycore/aholo-sdk-lux3d` client endpoints (`imgTo3d`, `textTo3d`, `tasks.waitFor`, `retopology`, `formatConvert`).
-  - Real-time WebGL rendering via `@google/model-viewer` with interactive camera orbit, pan, zoom, and auto-rotate controls.
+  - Real-time WebGL rendering via `@google/model-viewer` with calm wait-state loading overlay, interactive camera orbit, pan, zoom, and auto-rotate controls.
   - Live dynamic PBR finish switches (Full Color, White Clay, Terracotta, Bronze).
   - Print-readiness validation engine checking format existence, byte sizes, face density, and standard bed bounds.
   - LocalStorage job state persistence and session restoration.
+  - Secure Edge serverless reverse proxy (`api/_proxy.ts`) shielding the Aholo API key on production Vercel deploys and local Vite dev proxy.
 - **Simulated Boundaries**:
   - In automated CI and unit tests, network calls to Aholo Lux3D are mocked using compliant response fixtures to avoid consuming hackathon generation credits.
   - In pure client P1, file downloads are triggered directly via browser anchor blobs and CDN URLs.
@@ -154,6 +161,7 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
 ## 9. Authority Boundaries & Security
 
 - **Data Privacy**: Uploaded photos and prompts are transmitted solely to the authenticated Aholo Lux3D endpoint over TLS. No third-party tracking scripts, analytics cookies, or secondary backends receive user heirloom images.
+- **Serverless API Key Shielding**: Production deployments route through the Vercel Edge Serverless reverse proxy (`api/aholo-global.ts` & `api/aholo-cn.ts`), ensuring `AHOLO_API_KEY` is never exposed in browser network inspection or client code. Direct client key mode (`VITE_AHOLO_API_KEY`) is preserved as a fallback for pure static hosting.
 - **Single-User Scope**: P1 operates strictly within the user's browser session. Jobs are stored in memory and private `localStorage`.
 - **Sandboxed Rendering**: 3D previews render inside the sandboxed `<model-viewer>` Web Component using WebGL.
 
@@ -161,17 +169,17 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
 
 ## 10. Results & Live Demo
 
-- **Live Demo Shell**: The static production bundle is configured for zero-configuration deployment on Vercel (`vercel.json`) and Netlify (`netlify.toml`).
+- **Live Demo Shell**: The static production bundle is configured for zero-configuration deployment on Vercel (`vercel.json`) with edge proxies and Netlify (`netlify.toml`).
 - **Smoke Verified**: Ephemeral preview server smoke test (`npm run smoke:serve`) validates the served HTML and Keepprint application shell on a random port.
 
 ### 10.1 Preloaded Examples for Judge & Hackathon Testing
 
-To allow hackathon judges and evaluators to test Keepprint instantly without waiting for 6–12 minute cloud GPU queues or consuming API credits, Keepprint includes **two preloaded, fully reconstructed heirloom examples** accessible directly from the sidebar on the home screen:
+To allow hackathon judges and evaluators to test Keepprint instantly without waiting for 1–3 minute (Turbo) or 5–8 minute (Ultra) cloud GPU queues or consuming API credits, Keepprint includes **two preloaded, fully reconstructed heirloom examples** accessible directly from the sidebar on the home screen:
 
 | Example                            | Category           | Provenance & Description                                                                                                             | Aholo Lux3D Task IDs                                 | Instant Testing Actions                                                                                       |
 | :--------------------------------- | :----------------- | :----------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------- | :------------------------------------------------------------------------------------------------------------ |
-| **Benin Ivory Mask of Queen Idia** | Royal Court Ivory  | Iconic 16th-century carved ivory pendant mask representing Queen Mother Idia of the Benin Empire with openwork crown and iron inlay. | Task `8029847` (G1 Mesh)<br/>Task `8030283` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
-| **Nok Terracotta Seated Figure**   | Ancient Terracotta | Ancient terracotta sculpture (c. 500 BCE) of a seated reflective figure with hand to chin, tiered hair, and flared bead collar.      | Task `8030052` (G1 Mesh)<br/>Task `8030163` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
+| **Benin Ivory Mask of Queen Idia** | Royal Court Ivory  | Iconic 16th-century carved ivory pendant mask representing Queen Mother Idia of the Benin Empire with openwork crown and iron inlay. | Task `8031001` (G1 Mesh)<br/>Task `8031341` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
+| **Nok Terracotta Seated Figure**   | Ancient Terracotta | Ancient terracotta sculpture (c. 500 BCE) of a seated reflective figure with hand to chin, tiered hair, and flared bead collar.      | Task `8031007` (G1 Mesh)<br/>Task `8031498` (Export) | **Instant 3D Preview**: Opens full 3D viewer & downloads.<br/>**Load Photo / Prompt**: Pre-fills upload form. |
 
 Both preloaded models include complete, verified cloud generation outputs:
 
@@ -229,7 +237,7 @@ npm run format:check
 # Run linter
 npm run lint
 
-# Run all 103 unit, integration, and E2E tests
+# Run all 137 unit, integration, and E2E tests
 npm test
 
 # Build production bundle
@@ -243,7 +251,7 @@ npm run smoke:serve
 
 ## 13. Limitations & Future Roadmap
 
-1. **Client-Side API Key**: In Phase 1, the Aholo API key resides in client memory (`VITE_AHOLO_API_KEY`). For production commercial multi-tenant use, a thin backend proxy (e.g. Cloudflare Worker or Edge Function) will handle authentication and rate limiting.
+1. **API Key Security**: Keepprint provides dual-mode authentication. On Vercel and local development, the Edge Serverless reverse proxy (`api/_proxy.ts`) securely keeps `AHOLO_API_KEY` on the server. On static hosting providers, the client fallback (`VITE_AHOLO_API_KEY`) is available for immediate setup. A future enhancement will add user-level rate limiting and usage caps for enterprise multi-tenancy.
 2. **Generation Quality Variance**: Heavily reflective, transparent, or filigree-thin objects (e.g. intricate wire jewelry) can introduce mesh noise; providing 3–4 contrasting angle photos or selecting "Terracotta/Bronze" preview helps visualize solid geometry.
 3. **Credit Management**: Aholo generation credits are consumed per task; Phase 2 caching (`localStorage`) prevents duplicate generation when refreshing the browser window.
 
