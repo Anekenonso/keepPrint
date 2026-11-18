@@ -1,5 +1,10 @@
 import type { GenerationInput, ImageInputItem, QualityMode, SourceType } from '../lib/types';
-import { validateImageFile, validateGenerationInput, MAX_IMAGE_COUNT } from '../lib/validation';
+import {
+  validateImageFile,
+  validatePrompt,
+  validateGenerationInput,
+  MAX_IMAGE_COUNT,
+} from '../lib/validation';
 
 export interface UploadFormOptions {
   onSubmit: (payload: GenerationInput) => void;
@@ -119,7 +124,7 @@ export class UploadForm {
                   </span>
                   <span class="quality-time">Usually 1–3 minutes</span>
                 </div>
-                <p class="quality-desc">Recommended for 3D printing. Print files can finish in the background.</p>
+                <p class="quality-desc">Recommended for 3D printing. Targeted 80k face mesh with background slicer export.</p>
               </div>
             </label>
             <label class="quality-card ${this.qualityMode === 'ultra' ? 'selected' : ''}" for="quality-ultra">
@@ -138,7 +143,7 @@ export class UploadForm {
                   </span>
                   <span class="quality-time">Usually 5–8 minutes</span>
                 </div>
-                <p class="quality-desc">Full G1 cloud pipeline with multi-pass retopology for intricate carvings.</p>
+                <p class="quality-desc">High-detail neural mesh generation for intricate carvings and heritage keepsakes.</p>
               </div>
             </label>
           </div>
@@ -434,6 +439,14 @@ export class UploadForm {
   }
 
   public handleSubmit(): void {
+    if (this.sourceType === 'text') {
+      const promptValidation = validatePrompt(this.promptText);
+      if (!promptValidation.success) {
+        this.showError(promptValidation.error);
+        return;
+      }
+    }
+
     const payload: GenerationInput = {
       sourceType: this.sourceType,
       prompt: this.promptText.trim() || undefined,

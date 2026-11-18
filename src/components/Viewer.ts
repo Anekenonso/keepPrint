@@ -1,4 +1,13 @@
-import '@google/model-viewer';
+let modelViewerLoaded = false;
+export async function ensureModelViewer(): Promise<void> {
+  if (modelViewerLoaded || typeof window === 'undefined') return;
+  try {
+    await import('@google/model-viewer');
+    modelViewerLoaded = true;
+  } catch (err) {
+    console.warn('[keepprint/viewer] Failed to dynamically load model-viewer:', err);
+  }
+}
 
 export type MaterialPreviewMode = 'original' | 'clay' | 'terracotta' | 'bronze';
 
@@ -75,6 +84,8 @@ export class ViewerComponent {
       `;
       return;
     }
+
+    void ensureModelViewer();
 
     this.container.innerHTML = `
       <div class="viewer-container" role="region" aria-label="${this.altText}">

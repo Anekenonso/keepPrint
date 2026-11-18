@@ -129,4 +129,27 @@ describe('Serverless Backend Proxy (api/_proxy.ts)', () => {
     const data = await response.json();
     expect(data.error).toContain('Upstream connection failed: Connection timeout');
   });
+
+  it('rejects disallowed HTTP methods with status 405', async () => {
+    const request = new Request('https://keepprint.vercel.app/api/aholo-global/v1/3d/generation', {
+      method: 'DELETE',
+    });
+
+    const response = await proxyToAholo(request, 'api.aholo.ai', '/api/aholo-global');
+    expect(response.status).toBe(405);
+    const data = await response.json();
+    expect(data.error).toContain('Method DELETE not allowed');
+  });
+
+  it('rejects unauthorized upstream paths with status 403', async () => {
+    const request = new Request(
+      'https://keepprint.vercel.app/api/aholo-global/admin/delete-database',
+      { method: 'POST', body: JSON.stringify({}) }
+    );
+
+    const response = await proxyToAholo(request, 'api.aholo.ai', '/api/aholo-global');
+    expect(response.status).toBe(403);
+    const data = await response.json();
+    expect(data.error).toContain('Forbidden');
+  });
 });

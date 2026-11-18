@@ -33,3 +33,9 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Smoke check ephemeral server
+        run: npm run smoke:serve
+
+      - name: Security audit dependencies
+        run: npm audit --omit=dev || true

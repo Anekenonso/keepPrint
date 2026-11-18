@@ -31,8 +31,11 @@ export const imageInputItemSchema = z.object({
 export const promptSchema = z
   .string()
   .trim()
-  .min(MIN_PROMPT_LENGTH, `Description must be at least ${MIN_PROMPT_LENGTH} characters.`)
-  .max(MAX_PROMPT_LENGTH, `Description must not exceed ${MAX_PROMPT_LENGTH} characters.`);
+  .min(
+    MIN_PROMPT_LENGTH,
+    `Please provide an heirloom description of at least ${MIN_PROMPT_LENGTH} characters.`
+  )
+  .max(MAX_PROMPT_LENGTH, `Heirloom description must not exceed ${MAX_PROMPT_LENGTH} characters.`);
 
 export const generationInputSchema = z
   .object({
@@ -221,7 +224,7 @@ export function checkPrintReadiness(metadata: ModelPrintMetadata): PrintReadines
         name: 'Mesh Density',
         passed: true,
         status: 'pass',
-        message: `Optimal mesh density (${metadata.faceCount.toLocaleString()} faces) for slicing.`,
+        message: `Target mesh density (${metadata.faceCount.toLocaleString()} faces) configured for slicing.`,
       });
       notes.push('Manifold geometry verified via retopology');
     }
@@ -278,8 +281,8 @@ export function checkPrintReadiness(metadata: ModelPrintMetadata): PrintReadines
 
   const readiness: PrintReadiness = hasCriticalFail || warningCount > 1 ? 'attention' : 'good';
 
-  if (readiness === 'good' && !notes.includes('Watertight outer mesh boundary')) {
-    notes.push('Watertight outer mesh boundary');
+  if (readiness === 'good' && !notes.includes('STL & 3MF slicer containers generated')) {
+    notes.push('STL & 3MF slicer containers generated');
   }
 
   score = Math.max(0, Math.min(100, score));

@@ -36,13 +36,13 @@ At the same time:
 
 ---
 
-## 4. Why This Approach (Lux3D + Retopology + Multi-Format Export)
+## 4. Why This Approach (Lux3D Mesh Density Optimization + Multi-Format Slicer Export)
 
 Keepprint bridges generative 3D modeling and additive manufacturing by integrating a multi-stage post-processing pipeline powered by **Aholo Lux3D**:
 
-1. **Generative Foundation (`imgTo3d` / `textTo3d`)**: Leverages Aholo Lux3D's high-fidelity volumetric generation algorithms to produce initial watertight surface envelopes directly from single or multi-angle photographs (up to 4 images: Front, Back, Side, Detail) or rich natural-language descriptions.
-2. **Automated Retopology (`retopology`)**: Executes an automated retopology task with an optimal 80,000 face budget (`targetFaceNum: 80000`) to guarantee uniform quad/tri manifold density, eliminate degenerate triangles, and ensure thin-feature stability.
-3. **Additive Manufacturing Export (`formatConvert`)**: Converts the cleaned mesh directly into standard additive manufacturing formats:
+1. **Generative Foundation (`imgTo3d` / `textTo3d`)**: Leverages Aholo Lux3D's volumetric generation algorithms to produce clean surface envelopes directly from single or multi-angle photographs (up to 4 images: Front, Back, Side, Detail) or rich natural-language descriptions.
+2. **Mesh Density Target (`faceCount: 80000`)**: Enforces an optimal 80,000 face budget directly during neural generation to guarantee uniform manifold triangle density, prevent degenerate geometry, and ensure structural stability.
+3. **Additive Manufacturing Export (`multiFormatExport`)**: Converts the generated mesh asynchronously into standard additive manufacturing formats:
    - **STL**: Universally compatible with all FDM/SLA slicers.
    - **3MF**: Modern additive manufacturing container preserving exact unit scaling, orientation, and manifold metadata.
    - **GLB**: Compact web-deliverable PBR asset for real-time 3D inspection.
@@ -52,7 +52,7 @@ Keepprint bridges generative 3D modeling and additive manufacturing by integrati
 
 ## 5. Architecture
 
-Keepprint is built as an ultra-fast, zero-backend, client-side web application using Vite 6, TypeScript 5.7, and the official `@manycore/aholo-sdk-lux3d` client library.
+Keepprint is built as an ultra-fast web application combining a modern static frontend (Vite 6, TypeScript 5.7) with a secure Vercel Edge Serverless reverse proxy for Aholo Lux3D.
 
 ```mermaid
 flowchart LR
@@ -63,9 +63,8 @@ flowchart LR
 
   subgraph Processing & Generation Pipeline
     VAL -->|Clean Payload| LUX[Lux3D Client Wrapper]
-    LUX -->|imgTo3d / textTo3d| GEN[Generation Task]
-    GEN -->|Raw GLB Mesh| RETOPO[Lux3D Retopology 80k Faces]
-    RETOPO -->|Cleaned Mesh| CONV[Lux3D Format Conversion]
+    LUX -->|imgTo3d / textTo3d| GEN[Generation Task: 80k Face Budget]
+    GEN -->|Targeted Mesh| CONV[Lux3D Multi-Format Export]
     CONV -->|STL + 3MF + GLB| RES[Job Output Artifacts]
   end
 
@@ -119,11 +118,10 @@ keepprint/
 
 The official `@manycore/aholo-sdk-lux3d` (version 1.10.0) powers the entire 3D synthesis pipeline:
 
-- **`imgTo3d.create`**: Generates 3D models from single or multi-angle image arrays (`images: string[]`) supporting both **Fast Mode (`G1-Turbo`)** for rapid 1–3 minute generation and **Detailed Mode (`G1`)** for 5–8 minute high-fidelity multi-pass geometry.
-- **`textTo3d.create`**: Generates 3D models from descriptive heirloom prompts and style directives with `G1-Turbo` and `G1` version options.
+- **`imgTo3d.create`**: Generates 3D models from single or multi-angle image arrays (`imgs: string[]` or `img: string`) with `faceCount: 80000`, supporting both **Fast Mode (`G1-Turbo`)** for rapid 1–3 minute generation and **Detailed Mode (`G1`)** for 5–8 minute high-fidelity geometry.
+- **`textTo3d.create`**: Generates 3D models from descriptive heirloom prompts with `faceCount: 80000` and `G1-Turbo` / `G1` version options.
 - **`tasks.waitFor`**: Reliable exponential-backoff polling that tracks task lifecycle transitions from `pending` to `running` to `succeeded` or `failed`.
-- **`retopology.create`**: Enforces strict manifold topology with `targetFaceNum: 80000`, ensuring clean edge flow and eliminating unclosed shells.
-- **`formatConvert.create`**: Asynchronously converts retopologized output into standard additive manufacturing files (`"stl"` and `"3mf"`).
+- **`multiFormatExport.create`**: Asynchronously converts generated meshes directly into standard additive manufacturing files (`"stl"` and `"3mf"`).
 - **Progressive Preview**: Interactive full-color 3D GLB is surfaced immediately as soon as reconstruction completes, with slicing files (STL & 3MF) continuing to prepare in the background.
 
 ---
@@ -132,11 +130,10 @@ The official `@manycore/aholo-sdk-lux3d` (version 1.10.0) powers the entire 3D s
 
 To validate the thesis that Keepprint produces sliceable, manifold meshes where raw AI geometry fails:
 
-1. **Baseline**: Run raw consumer photogrammetry or unprocessed text-to-mesh outputs of a hand-carved West African wooden figurine through standard slicers (Bambu Studio / PrusaSlicer).
-   - _Result_: 14 non-manifold edge warnings, 3 degenerate holes, inverted face normals; slicing failed or sliced with hollow voids.
-2. **Keepprint Pipeline**: Run the same object through Keepprint (`imgTo3d` &rarr; `retopology` at 80k faces &rarr; `formatConvert` to STL/3MF).
-   - _Result_: Zero non-manifold edges, completely closed shell, uniform face distribution, sliced cleanly at 0.16mm layer height without repairs.
-3. **Ablation / Removal Test**: Disabling the retopology step produces an unoptimized 400k+ face mesh that fails print-readiness validation density checks.
+1. **Baseline**: Run raw consumer photogrammetry or unprocessed point-cloud outputs of a hand-carved West African wooden figurine through standard slicers (Bambu Studio / PrusaSlicer).
+   - _Result_: Multiple non-manifold edge warnings, degenerate holes, inverted face normals; slicing failed or sliced with hollow internal voids.
+2. **Keepprint Pipeline**: Run the same object through Keepprint (`imgTo3d` with targeted 80k face budget &rarr; `multiFormatExport` to STL/3MF).
+   - _Result_: Watertight closed shell, uniform face distribution, clean layer slicing at 0.16mm layer height without mesh repair warnings.
 
 ---
 
@@ -146,13 +143,14 @@ To validate the thesis that Keepprint produces sliceable, manifold meshes where 
   - Live client-side file upload with MIME type enforcement (JPEG/PNG/WebP), 10MB size limits, and smart client-side downscaling (max 1600px, 0.88 JPEG) for fast transmission.
   - Multi-image angle slots (Front, Back, Side, Top/Detail) with dynamic re-indexing.
   - Generation mode selection: **Fast (`G1-Turbo`)** (usually 1–3 min) vs. **Detailed (`G1`)** (usually 5–8 min).
-  - Integration with `@manycore/aholo-sdk-lux3d` client endpoints (`imgTo3d`, `textTo3d`, `tasks.waitFor`, `retopology`, `formatConvert`).
+  - Integration with `@manycore/aholo-sdk-lux3d` client endpoints (`imgTo3d`, `textTo3d`, `tasks.waitFor`, `multiFormatExport`).
   - Real-time WebGL rendering via `@google/model-viewer` with calm wait-state loading overlay, interactive camera orbit, pan, zoom, and auto-rotate controls.
   - Live dynamic PBR finish switches (Full Color, White Clay, Terracotta, Bronze).
   - Print-readiness validation engine checking format existence, byte sizes, face density, and standard bed bounds.
   - LocalStorage job state persistence and session restoration.
   - Secure Edge serverless reverse proxy (`api/_proxy.ts`) shielding the Aholo API key on production Vercel deploys and local Vite dev proxy.
-- **Simulated Boundaries**:
+- **Simulated & Preloaded Boundaries**:
+  - **Curated Specimens Replay**: To allow hackathon judges and evaluators to test Keepprint instantly without waiting for cloud GPU queues or consuming API credits, the Curated Specimens sidebar replays verified cloud generation tasks (`#8031001` and `#8031007`) and serves real precomputed GLB/STL/3MF artifacts.
   - In automated CI and unit tests, network calls to Aholo Lux3D are mocked using compliant response fixtures to avoid consuming hackathon generation credits.
   - In pure client P1, file downloads are triggered directly via browser anchor blobs and CDN URLs.
 
@@ -189,9 +187,9 @@ Both preloaded models include complete, verified cloud generation outputs:
 
 ---
 
-## 11. Evidence & Screenshots
+## 11. Evidence & UI Architecture Walkthrough
 
-| Phase                        | Description                                                                   | Visual Artifact                                                           |
+| Phase                        | Description                                                                   | UI Architecture Diagram                                                   |
 | ---------------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
 | **01. Landing & Upload**     | Multi-image drag-and-drop slots with angle badges and heirloom prompt         | ![Landing](public/screenshots/01-landing-upload.svg)                      |
 | **02. Generation Progress**  | 4-stage pipeline tracker with animated progress and cancel option             | ![Progress](public/screenshots/02-generation-progress.svg)                |
@@ -214,15 +212,15 @@ Both preloaded models include complete, verified cloud generation outputs:
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/USER/keepprint.git
-cd keepprint
+git clone https://github.com/Anekenonso/keepPrint.git
+cd keepPrint
 
 # 2. Install dependencies (strictly pinned)
 npm install
 
 # 3. Configure environment variables
 cp .env.example .env
-# Edit .env and enter your VITE_AHOLO_API_KEY
+# Edit .env and enter your AHOLO_API_KEY (used securely server-side)
 
 # 4. Start local development server
 npm run dev
@@ -237,7 +235,7 @@ npm run format:check
 # Run linter
 npm run lint
 
-# Run all 137 unit, integration, and E2E tests
+# Run all unit, integration, and E2E tests
 npm test
 
 # Build production bundle
@@ -251,9 +249,10 @@ npm run smoke:serve
 
 ## 13. Limitations & Future Roadmap
 
-1. **API Key Security**: Keepprint provides dual-mode authentication. On Vercel and local development, the Edge Serverless reverse proxy (`api/_proxy.ts`) securely keeps `AHOLO_API_KEY` on the server. On static hosting providers, the client fallback (`VITE_AHOLO_API_KEY`) is available for immediate setup. A future enhancement will add user-level rate limiting and usage caps for enterprise multi-tenancy.
-2. **Generation Quality Variance**: Heavily reflective, transparent, or filigree-thin objects (e.g. intricate wire jewelry) can introduce mesh noise; providing 3–4 contrasting angle photos or selecting "Terracotta/Bronze" preview helps visualize solid geometry.
-3. **Credit Management**: Aholo generation credits are consumed per task; Phase 2 caching (`localStorage`) prevents duplicate generation when refreshing the browser window.
+1. **API Key Security**: Keepprint provides dual-mode authentication. On Vercel and local development, the Edge Serverless reverse proxy (`api/_proxy.ts`) securely keeps `AHOLO_API_KEY` on the server with strict SDK route allowlisting, GET/POST restrictions, and per-IP rate limiting. On static hosting providers, the client fallback (`VITE_AHOLO_API_KEY`) is available for immediate setup.
+2. **Schema & Library Evolution**: Planned upgrade to Zod 4 once its general availability release stabilizes.
+3. **Generation Quality Variance**: Heavily reflective, transparent, or filigree-thin objects (e.g. intricate wire jewelry) can introduce mesh noise; providing 3–4 contrasting angle photos or selecting "Terracotta/Bronze" preview helps visualize solid geometry.
+4. **Credit Management**: Aholo generation credits are consumed per task; Phase 2 caching (`localStorage`) prevents duplicate generation when refreshing the browser window.
 
 ---
 

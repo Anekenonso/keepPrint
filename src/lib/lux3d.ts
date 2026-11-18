@@ -50,6 +50,7 @@ export interface GenerationResult {
   zipUrl?: string;
   outputs: TaskOutput[];
   error?: string;
+  exportError?: string;
 }
 
 export function getAholoConfig(overrides?: Lux3dConfig): { apiKey: string; region: 'cn' | 'com' } {
@@ -57,18 +58,8 @@ export function getAholoConfig(overrides?: Lux3dConfig): { apiKey: string; regio
   let envRegion: 'cn' | 'com' = 'com';
 
   if (typeof import.meta !== 'undefined' && import.meta.env) {
-    envApiKey =
-      (import.meta.env.AHOLO_API_KEY as string) ||
-      (import.meta.env.VITE_AHOLO_API_KEY as string) ||
-      '';
+    envApiKey = (import.meta.env.VITE_AHOLO_API_KEY as string) || '';
     if (import.meta.env.VITE_AHOLO_REGION === 'cn') {
-      envRegion = 'cn';
-    }
-  }
-
-  if (!envApiKey && typeof process !== 'undefined' && process.env) {
-    envApiKey = process.env.AHOLO_API_KEY || process.env.VITE_AHOLO_API_KEY || '';
-    if (process.env.VITE_AHOLO_REGION === 'cn') {
       envRegion = 'cn';
     }
   }
@@ -147,27 +138,16 @@ export function extractModelUrls(outputs: TaskOutput[] | undefined): {
       continue;
     }
 
-    const lower = url.toLowerCase();
-    if (lower.endsWith('.glb') || lower.includes('.glb?')) {
+    const clean = url.toLowerCase().split('?')[0];
+    if (clean.endsWith('.glb')) {
       glbUrl = url;
-    } else if (lower.endsWith('.stl') || lower.includes('.stl?')) {
+    } else if (clean.endsWith('.stl')) {
       stlUrl = url;
-    } else if (lower.endsWith('.3mf') || lower.includes('.3mf?')) {
+    } else if (clean.endsWith('.3mf')) {
       threemfUrl = url;
-    } else if (lower.endsWith('.zip') || lower.includes('.zip?')) {
+    } else if (clean.endsWith('.zip')) {
       zipUrl = url;
     }
-  }
-
-  // Fallback: If no explicit extension matched GLB, check if standard 2nd slot in G1 has a valid URL
-  if (!glbUrl && outputs.length > 1 && outputs[1]?.content?.startsWith('http')) {
-    glbUrl = outputs[1].content;
-  } else if (
-    !glbUrl &&
-    outputs[0]?.content?.startsWith('http') &&
-    !outputs[0].content.endsWith('.zip')
-  ) {
-    glbUrl = outputs[0].content;
   }
 
   return { glbUrl, stlUrl, threemfUrl, zipUrl };
@@ -315,6 +295,15 @@ export async function exportPrintFormats(
   };
 }
 
+export async function retryExport(
+  modelUrl: string,
+  client?: Lux3dClient,
+  options?: WaitForLux3dTaskOptions
+): Promise<MultiFormatExportResult> {
+  const luxClient = client || createClient();
+  return exportPrintFormats(modelUrl, luxClient, options);
+}
+
 export async function pollTask(
   taskId: number,
   client: Lux3dClient,
@@ -446,6 +435,7 @@ export async function generate3D(
   let stlUrl = urls.stlUrl;
   let threemfUrl = urls.threemfUrl;
   const exportTarget = retopoGlbUrl || urls.glbUrl;
+  let exportError: string | undefined;
 
   if (enableExport && exportTarget && (!stlUrl || !threemfUrl)) {
     options?.onProgress?.('Exporting printable STL and 3MF files in background...');
@@ -457,8 +447,9 @@ export async function generate3D(
       if (exportResult.threemfUrl) {
         threemfUrl = exportResult.threemfUrl;
       }
-    } catch {
-      // Keep existing URLs if export task fails
+    } catch (err: unknown) {
+      exportError = err instanceof Error ? err.message : 'Slicer export failed';
+      console.warn('[keepprint/lux3d] Background slicer export failed:', exportError);
     }
   }
 
@@ -472,5 +463,6 @@ export async function generate3D(
     threemfUrl,
     zipUrl: urls.zipUrl,
     outputs: taskResult.outputs || [],
+    exportError,
   };
 }

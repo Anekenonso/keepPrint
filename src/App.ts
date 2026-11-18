@@ -332,8 +332,18 @@ export class App {
     const stepContainer = this.container.querySelector<HTMLElement>('#step-container');
     if (!stepContainer) return;
 
+    const isReplay = Boolean(
+      this.activeExample &&
+        ((input.images &&
+          input.images.length > 0 &&
+          input.images[0].name === this.activeExample.imageInputs[0]?.name) ||
+          (input.prompt && input.prompt.trim() === this.activeExample.prompt.trim()))
+    );
+
     const progress = new ProgressComponent(stepContainer, {
       qualityMode: input.qualityMode,
+      isReplay,
+      replayTaskId: this.activeExample?.meta.aholoTaskId,
       onCancel: () => {
         this.abortController?.abort();
         this.state = 'upload';

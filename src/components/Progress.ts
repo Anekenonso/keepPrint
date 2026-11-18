@@ -10,12 +10,14 @@ export interface ProgressStepInfo {
 export const PROGRESS_STEPS: ProgressStepInfo[] = [
   { id: 'upload', label: 'Upload heirloom data' },
   { id: 'generate', label: 'Generate 3D mesh' },
-  { id: 'retopo', label: 'Optimize topology & printability' },
+  { id: 'retopo', label: 'Optimize mesh density (80k faces)' },
   { id: 'export', label: 'Export STL & 3MF models' },
 ];
 
 export interface ProgressComponentOptions {
   qualityMode?: QualityMode;
+  isReplay?: boolean;
+  replayTaskId?: number | string;
   onCancel?: () => void;
   onRetry?: () => void;
 }
@@ -45,10 +47,17 @@ export class ProgressComponent {
         ? 100
         : Math.round(((stageIndex + 1) / (PROGRESS_STEPS.length + 1)) * 100);
 
+    const isReplay = Boolean(this.options.isReplay);
+    const titleText = isError
+      ? 'Generation Paused'
+      : isReplay
+        ? `Replaying Saved Result${this.options.replayTaskId ? ` (Task #${this.options.replayTaskId})` : ''}`
+        : 'Crafting Your 3D Heirloom';
+
     this.container.innerHTML = `
       <div class="progress-card ${isError ? 'progress-error-card' : ''}">
         <div class="progress-header">
-          <h3>${isError ? 'Generation Paused' : 'Crafting Your 3D Heirloom'}</h3>
+          <h3>${titleText}</h3>
           <p class="progress-message" id="progress-message">
             ${isError ? this.errorMessage : this.currentMessage}
           </p>
@@ -94,12 +103,16 @@ export class ProgressComponent {
             }).join('')}
           </div>
           <div class="progress-hint">
-            <span class="hint-tag">Status</span>
-            <span>Synthesizing a watertight 3D heirloom mesh reconstructs volumetric geometry on cloud GPUs. ${
-              this.qualityMode === 'ultra'
-                ? 'Detailed mode usually takes <strong>5–8 minutes</strong> with multi-pass retopology.'
-                : 'Fast mode usually takes <strong>1–3 minutes</strong>.'
-            } Please keep this tab active.</span>
+            <span class="hint-tag">${isReplay ? 'Replay Mode' : 'Status'}</span>
+            <span>${
+              isReplay
+                ? 'Replaying verified cloud generation stages for instant evaluation without consuming API credits.'
+                : `Synthesizing a watertight 3D heirloom mesh reconstructs volumetric geometry on cloud GPUs. ${
+                    this.qualityMode === 'ultra'
+                      ? 'Detailed mode usually takes <strong>5–8 minutes</strong> with multi-pass retopology.'
+                      : 'Fast mode usually takes <strong>1–3 minutes</strong>.'
+                  } Please keep this tab active.`
+            }</span>
           </div>
         `
             : `

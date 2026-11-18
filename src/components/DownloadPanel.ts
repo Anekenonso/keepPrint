@@ -14,9 +14,11 @@ export interface DownloadPanelOptions {
   readiness?: PrintReadiness;
   readinessNotes?: string[];
   isPreparing?: boolean;
+  exportError?: string;
   onDownload?: (format: 'stl' | '3mf' | 'glb', url: string) => void;
   onReset?: () => void;
   onOpenPrintGuide?: () => void;
+  onRetryExport?: () => void;
 }
 
 export class DownloadPanel {
@@ -34,7 +36,6 @@ export class DownloadPanel {
       hasStl: Boolean(stlUrl),
       hasThreeMf: Boolean(threemfUrl),
       hasGlb: Boolean(glbUrl),
-      faceCount: 80000,
     });
 
     const readiness: PrintReadiness = this.options.readiness || computedReport.readiness;
@@ -60,7 +61,7 @@ export class DownloadPanel {
           <ul class="readiness-notes">
             ${
               isPreparing
-                ? `<li><svg class="spinner-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Converting 80k mesh into manifold STL and 3MF in background...</span></li>
+                ? `<li><svg class="spinner-svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg><span>Converting mesh into manifold STL and 3MF in background...</span></li>
                    <li><svg class="note-check-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg><span>Full-color 3D preview is active and interactive above.</span></li>`
                 : notes
                     .map(
@@ -111,7 +112,7 @@ export class DownloadPanel {
               id="download-3mf-btn"
               data-format="3mf"
             >
-              <svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              <svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 2 7 12 12 22 7 12 22 17"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
               <span>Download 3MF (Color & Slices)</span>
             </a>
           `
@@ -127,6 +128,17 @@ export class DownloadPanel {
               3MF Unavailable
             </button>
           `
+          }
+
+          ${
+            (!stlUrl || !threemfUrl) && !isPreparing
+              ? `
+            <button type="button" class="download-btn btn-outline" id="retry-export-btn">
+              <svg class="btn-svg-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+              <span>Retry Slicer Export</span>
+            </button>
+          `
+              : ''
           }
 
           ${
@@ -155,6 +167,10 @@ export class DownloadPanel {
             <span>Slicer &amp; 3D Print Guide</span>
           </button>
         </div>
+
+        <p class="print-disclaimer">
+          Notice: This is an AI-generated reconstruction. Always inspect layer lines and wall thicknesses in your slicer before physical printing.
+        </p>
 
         ${
           this.options.onReset
@@ -187,6 +203,11 @@ export class DownloadPanel {
           e.preventDefault();
         }
       });
+    });
+
+    const retryBtn = this.container.querySelector<HTMLButtonElement>('#retry-export-btn');
+    retryBtn?.addEventListener('click', () => {
+      this.options.onRetryExport?.();
     });
 
     const resetBtn = this.container.querySelector<HTMLButtonElement>('#reset-flow-btn');

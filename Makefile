@@ -15,7 +15,7 @@ format:
 	npm run format
 
 smoke:
-	node scripts/smoke.mjs $(TARGET)
+	node scripts/smoke.mjs $(if $(TARGET),$(TARGET),--serve)
 
 preview:
 	npm run preview

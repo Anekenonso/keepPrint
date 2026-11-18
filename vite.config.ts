@@ -51,6 +51,24 @@ export default defineConfig(({ mode }) => {
         'node:fs/promises': path.resolve(__dirname, 'src/lib/shims/node-fs-promises.ts'),
       },
     },
+    build: {
+      chunkSizeWarningLimit: 1000,
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('@google/model-viewer')) {
+              return 'model-viewer';
+            }
+            if (id.includes('@manycore/aholo-sdk-lux3d')) {
+              return 'aholo-sdk';
+            }
+            if (id.includes('node_modules/zod')) {
+              return 'zod';
+            }
+          },
+        },
+      },
+    },
     test: {
       globals: true,
       environment: 'jsdom',
